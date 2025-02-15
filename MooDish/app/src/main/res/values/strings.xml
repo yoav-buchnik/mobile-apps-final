@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">MooDish</string>
+    <string name="moodish">MooDish</string>
+    <string name="romantic">Romantic</string>
+    <string name="family">Family</string>
+    <string name="solo">Solo</string>
+    <string name="happy">Happy</string>
+    <string name="more">More</string>
+</resources>
