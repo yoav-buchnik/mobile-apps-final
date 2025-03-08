@@ -92,6 +92,7 @@ class LoginActivity : AppCompatActivity() {
     
     private fun navigateToMainActivity() {
         val intent = Intent(this, MainActivity::class.java)
+        intent.putExtra("USER_EMAIL", binding.etEmail.editText?.text.toString())
         startActivity(intent)
         finish() // Close the login activity
     }

@@ -5,17 +5,23 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.moodish.databinding.ActivityMainBinding
+import android.content.Intent
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+    private var userEmail: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Get user email from intent
+        userEmail = intent.getStringExtra("USER_EMAIL")
+        
         setupRecyclerView()
         setupChipListeners()
+        setupBottomNavigation()
     }
 
     private fun setupRecyclerView() {
@@ -46,6 +52,22 @@ class MainActivity : AppCompatActivity() {
             chipMore.setOnClickListener {
                 showMoreCategories()
                 showToast("More clicked")
+            }
+        }
+    }
+
+    private fun setupBottomNavigation() {
+        binding.bottomNavigation.inflateMenu(R.menu.bottom_navigation_menu)
+        binding.bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_profile -> {
+                    val intent = Intent(this, ProfileActivity::class.java)
+                    intent.putExtra("USER_EMAIL", userEmail)
+                    startActivity(intent)
+                    true
+                }
+                // Handle other menu items
+                else -> false
             }
         }
     }

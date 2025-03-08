@@ -25,4 +25,18 @@
     <string name="name">Full Name</string>
     <string name="confirm_password">Confirm Password</string>
     <string name="already_have_account">Already have an account?</string>
+    
+    <!-- Profile screen strings -->
+    <string name="profile">Profile</string>
+    <string name="profile_image">Profile Image</string>
+    <string name="change_photo">Change Photo</string>
+    <string name="last_login">Last Login:</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="logout">Logout</string>
+
+    <!-- Bottom navigation strings -->
+    <string name="menu_home">Home</string>
+    <string name="menu_search">Search</string>
+    <string name="menu_favorites">Favorites</string>
+    <string name="menu_profile">Profile</string>
 </resources>
