@@ -8,7 +8,6 @@ import androidx.lifecycle.lifecycleScope
 import com.example.moodish.data.AppDatabase
 import com.example.moodish.data.entity.User
 import com.example.moodish.databinding.ActivityLoginBinding
-import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
@@ -48,7 +47,8 @@ class LoginActivity : AppCompatActivity() {
         }
         
         binding.btnSignUp.setOnClickListener {
-            showToast("Signup clicked")
+            val intent = Intent(this, SignUpActivity::class.java)
+            startActivity(intent)
         }
         
         binding.btnGoogleSignIn.setOnClickListener {
