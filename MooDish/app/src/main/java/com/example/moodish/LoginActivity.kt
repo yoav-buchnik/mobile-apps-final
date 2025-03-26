@@ -6,7 +6,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.moodish.data.AppDatabase
-import com.example.moodish.data.entity.User
+import com.example.moodish.data.model.User
 import com.example.moodish.databinding.ActivityLoginBinding
 import kotlinx.coroutines.launch
 

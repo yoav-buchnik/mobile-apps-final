@@ -1,4 +1,4 @@
-package com.example.moodish.data.entity
+package com.example.moodish.data.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -11,4 +11,4 @@ data class User(
     val name: String? = null,
     val profilePicUrl: String? = null,
     val lastLoginTimestamp: Long = System.currentTimeMillis()
-) 
+)
