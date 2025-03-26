@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "150719013677",
+    "project_id": "moodish-4c9b6",
+    "storage_bucket": "moodish-4c9b6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:150719013677:android:4e99b4b4b30b27a2b1e9a4",
+        "android_client_info": {
+          "package_name": "com.example.moodish"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBtTUfUnwj9un-poXiPhKTMZhtrvXxwB04"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
