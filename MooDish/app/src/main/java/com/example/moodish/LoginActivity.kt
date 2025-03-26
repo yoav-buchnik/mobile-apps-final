@@ -51,10 +51,6 @@ class LoginActivity : AppCompatActivity() {
             startActivity(intent)
         }
         
-        binding.btnGoogleSignIn.setOnClickListener {
-            showToast("Google Sign In clicked")
-        }
-        
         binding.tvForgotPassword.setOnClickListener {
             showToast("Forgot Password clicked")
         }
