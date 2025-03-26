@@ -8,18 +8,24 @@ import androidx.lifecycle.lifecycleScope
 import com.example.moodish.data.AppDatabase
 import com.example.moodish.data.model.User
 import com.example.moodish.databinding.ActivitySignupBinding
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.UserProfileChangeRequest
 import kotlinx.coroutines.launch
 
 class SignUpActivity : AppCompatActivity() {
     
     private lateinit var binding: ActivitySignupBinding
     private lateinit var database: AppDatabase
+    private lateinit var auth: FirebaseAuth
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySignupBinding.inflate(layoutInflater)
         setContentView(binding.root)
         database = AppDatabase.getDatabase(this)
+        
+        // Initialize Firebase Auth
+        auth = FirebaseAuth.getInstance()
         
         setupClickListeners()
     }
@@ -42,21 +48,38 @@ class SignUpActivity : AppCompatActivity() {
     }
     
     private fun registerUser(name: String, email: String, password: String) {
-        lifecycleScope.launch {
-            val existingUser = database.userDao().getUserByEmail(email)
-            if (existingUser != null) {
-                showToast("Email already registered")
-            } else {
-                val newUser = User(
-                    email = email,
-                    password = password,
-                    name = name
-                )
-                database.userDao().insertUser(newUser)
-                showToast("Registration successful")
-                navigateToLogin()
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    // Update profile to include name
+                    val profileUpdates = UserProfileChangeRequest.Builder()
+                        .setDisplayName(name)
+                        .build()
+                    
+                    auth.currentUser?.updateProfile(profileUpdates)
+                        ?.addOnCompleteListener { profileTask ->
+                            if (profileTask.isSuccessful) {
+                                // Save user details locally
+                                lifecycleScope.launch {
+                                    val user = User(
+                                        email = email,
+                                        password = password, // Consider if you really need to store this
+                                        name = name,
+                                        profilePicUrl = null,
+                                        lastLoginTimestamp = System.currentTimeMillis()
+                                    )
+                                    database.userDao().insertUser(user)
+                                    showToast("Registration successful")
+                                    navigateToLogin()
+                                }
+                            } else {
+                                showToast("Failed to update profile: ${profileTask.exception?.message}")
+                            }
+                        }
+                } else {
+                    showToast("Registration failed: ${task.exception?.message}")
+                }
             }
-        }
     }
     
     private fun validateInputs(name: String, email: String, password: String, confirmPassword: String): Boolean {

@@ -12,6 +12,8 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.google.firebase.auth.FirebaseAuth
+import com.example.moodish.data.model.User
 
 class ProfileActivity : AppCompatActivity() {
 
@@ -67,9 +69,9 @@ class ProfileActivity : AppCompatActivity() {
                 binding.tvEmail.text = user.email
                 
                 // Format and set last login date
-                val sdf = SimpleDateFormat("MMMM d, yyyy", Locale.getDefault())
+                val sdf = SimpleDateFormat("MMMM d, yyyy 'at' HH:mm", Locale.getDefault())
                 val lastLoginDate = Date(user.lastLoginTimestamp)
-                binding.tvLastLogin.text = sdf.format(lastLoginDate)
+                binding.tvLastLogin.text = "Last login: ${sdf.format(lastLoginDate)}"
                 
                 // Load profile image if available, otherwise use default
                 if (!user.profilePicUrl.isNullOrEmpty()) {
@@ -82,8 +84,22 @@ class ProfileActivity : AppCompatActivity() {
                     binding.ivProfileImage.setImageResource(R.drawable.default_profile)
                 }
             } else {
-                showToast("User not found")
-                finish()
+                // If user not found in local DB but we have Firebase auth, create local entry
+                val firebaseUser = FirebaseAuth.getInstance().currentUser
+                if (firebaseUser != null) {
+                    val newUser = User(
+                        email = firebaseUser.email!!,
+                        password = "", // Don't store the password
+                        name = firebaseUser.displayName,
+                        profilePicUrl = firebaseUser.photoUrl?.toString(),
+                        lastLoginTimestamp = System.currentTimeMillis()
+                    )
+                    database.userDao().insertUser(newUser)
+                    loadUserProfile() // Reload the profile
+                } else {
+                    showToast("User not found")
+                    finish()
+                }
             }
         }
     }

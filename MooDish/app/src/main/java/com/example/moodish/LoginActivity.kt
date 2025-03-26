@@ -8,32 +8,23 @@ import androidx.lifecycle.lifecycleScope
 import com.example.moodish.data.AppDatabase
 import com.example.moodish.data.model.User
 import com.example.moodish.databinding.ActivityLoginBinding
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
     
     private lateinit var binding: ActivityLoginBinding
+    private lateinit var auth: FirebaseAuth
     private lateinit var database: AppDatabase
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        auth = FirebaseAuth.getInstance()
         database = AppDatabase.getDatabase(this)
         
         setupClickListeners()
-
-        addAdminUserIfNeeded()
-    }
-    
-    private fun addAdminUserIfNeeded() {
-        lifecycleScope.launch {
-            val adminUser = User(
-                email = "admin",
-                password = "admin"
-            )
-            database.userDao().insertUser(adminUser)
-        }
     }
     
     private fun setupClickListeners() {
@@ -57,15 +48,22 @@ class LoginActivity : AppCompatActivity() {
     }
     
     private fun attemptLogin(email: String, password: String) {
-        lifecycleScope.launch {
-            val user = database.userDao().login(email, password)
-            if (user != null) {
-                showToast("Login successful")
-                navigateToMainActivity()
-            } else {
-                showToast("Invalid credentials")
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    // Update last login timestamp in local database
+                    lifecycleScope.launch {
+                        val user = database.userDao().getUserByEmail(email)
+                        if (user != null) {
+                            database.userDao().insertUser(user.copy(lastLoginTimestamp = System.currentTimeMillis()))
+                        }
+                    }
+                    showToast("Login successful")
+                    navigateToMainActivity()
+                } else {
+                    showToast("Authentication failed: ${task.exception?.message}")
+                }
             }
-        }
     }
     
     private fun validateInputs(email: String, password: String): Boolean {
