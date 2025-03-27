@@ -50,10 +50,11 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         binding.btnLogout.setOnClickListener {
-            // Navigate back to login screen
-            val intent = Intent(this, LoginActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
+            // Simple Firebase sign out
+            FirebaseAuth.getInstance().signOut()
+            
+            // Return to login screen
+            startActivity(Intent(this, LoginActivity::class.java))
             finish()
         }
     }
