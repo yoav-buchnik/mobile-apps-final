@@ -24,6 +24,20 @@ class LoginActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         database = AppDatabase.getDatabase(this)
         
+        // Check if user is already signed in
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            // User is already signed in, update local database and navigate to main activity
+            lifecycleScope.launch {
+                val user = database.userDao().getUserByEmail(currentUser.email!!)
+                if (user != null) {
+                    database.userDao().insertUser(user.copy(lastLoginTimestamp = System.currentTimeMillis()))
+                }
+            }
+            navigateToMainActivity()
+            return
+        }
+        
         setupClickListeners()
     }
     
