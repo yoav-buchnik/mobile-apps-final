@@ -23,7 +23,6 @@ class MainActivity : AppCompatActivity() {
         setupRecyclerView()
         setupChipListeners()
         setupBottomNavigation()
-        setupAddPostButton()
     }
 
     private fun setupRecyclerView() {
@@ -64,18 +63,13 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
                     true
                 }
+                R.id.nav_create_post -> {
+                    showToast("Create Post functionality will be implemented soon")
+                    true
+                }
                 // Handle other menu items
                 else -> false
             }
-        }
-    }
-
-    private fun setupAddPostButton() {
-        binding.fabAddPost.setOnClickListener {
-            val intent = Intent(this, CreatePostActivity::class.java)
-            intent.putExtra("USER_EMAIL", userEmail)
-            startActivity(intent)
-            finish()
         }
     }
 

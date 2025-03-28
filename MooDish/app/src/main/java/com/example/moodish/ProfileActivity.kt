@@ -125,6 +125,10 @@ class ProfileActivity : AppCompatActivity() {
                     showToast("Favorites functionality will be implemented soon")
                     true
                 }
+                R.id.nav_create_post -> {
+                    showToast("Create Post functionality will be implemented soon")
+                    true
+                }
                 R.id.nav_profile -> {
                     true
                 }
