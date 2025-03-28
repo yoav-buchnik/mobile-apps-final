@@ -23,7 +23,10 @@
     <string name="name">Full Name</string>
     <string name="confirm_password">Confirm Password</string>
     <string name="already_have_account">Already have an account?</string>
-    
+
+    <!-- Sign up screen strings -->
+    <string name="add_post">Add Post</string>
+
     <!-- Profile screen strings -->
     <string name="profile">Profile</string>
     <string name="profile_image">Profile Image</string>
