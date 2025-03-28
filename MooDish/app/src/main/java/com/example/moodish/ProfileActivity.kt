@@ -126,7 +126,9 @@ class ProfileActivity : AppCompatActivity() {
                     true
                 }
                 R.id.nav_create_post -> {
-                    showToast("Create Post functionality will be implemented soon")
+                    val intent = Intent(this, CreatePostActivity::class.java)
+                    intent.putExtra("USER_EMAIL", userEmail)
+                    startActivity(intent)
                     true
                 }
                 R.id.nav_profile -> {
