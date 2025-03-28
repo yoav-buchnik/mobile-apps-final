@@ -7,19 +7,23 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.example.moodish.databinding.ActivityCreatePostBinding
-import com.google.firebase.storage.FirebaseStorage
-import java.util.UUID
+import com.example.moodish.data.AppDatabase
+import com.example.moodish.utils.ImageUtils.uploadImageToStorage
+import com.example.moodish.utils.ImageUtils.uriToBitmap
+import com.example.moodish.utils.PostUtils.uploadPostToLocalDb
+
 
 class CreatePostActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCreatePostBinding
     private var imageUri: Uri? = null
-    private val storage = FirebaseStorage.getInstance()
     private var userEmail: String? = null
+    private lateinit var database: AppDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityCreatePostBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        database = AppDatabase.getDatabase(this)
 
         userEmail = intent.getStringExtra("USER_EMAIL")
         setupBottomNavigation()
@@ -58,6 +62,8 @@ class CreatePostActivity : AppCompatActivity() {
         binding.btnSavePost.setOnClickListener {
             savePost()
         }
+
+        setupLabelCheckBoxes()
     }
 
     private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -71,6 +77,21 @@ class CreatePostActivity : AppCompatActivity() {
         galleryLauncher.launch("image/*")
     }
 
+    private fun setupLabelCheckBoxes() {
+        val checkBoxes = listOf(binding.chkRomantic, binding.chkSolo, binding.chkHappy, binding.chkFamily)
+        for (checkBox in checkBoxes) {
+            checkBox.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    checkBoxes.filter { it != checkBox }.forEach { it.isChecked = false }
+                }
+            }
+        }
+    }
+
+    private fun savePostInDb(postText: String, imageUrl: String, selectedLabel: String) {
+
+    }
+
     private fun savePost() {
         val postText = binding.etPostText.text.toString().trim()
         if (postText.isEmpty() || imageUri == null) {
@@ -78,15 +99,39 @@ class CreatePostActivity : AppCompatActivity() {
             return
         }
 
-        val labels = mutableListOf<String>()
-        if (binding.chkRomantic.isChecked) labels.add("Romantic")
-        if (binding.chkSolo.isChecked) labels.add("Solo")
-        if (binding.chkHappy.isChecked) labels.add("Happy")
+        val selectedLabel = when {
+            binding.chkRomantic.isChecked -> "Romantic"
+            binding.chkSolo.isChecked -> "Solo"
+            binding.chkHappy.isChecked -> "Happy"
+            binding.chkFamily.isChecked -> "Family"
+            else -> null
+        }
 
-        // Here you would typically upload the image to Firebase Storage
-        // and save the post data to your database
-        // For now, we'll just show a success message
-        Toast.makeText(this, "Post created successfully!", Toast.LENGTH_SHORT).show()
-        finish()
+        if (selectedLabel == null) {
+            Toast.makeText(this, "Please select one label", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        try {
+            val bitmap = uriToBitmap(this, imageUri!!)
+            val imageName = "post_${System.currentTimeMillis()}"
+
+            uploadImageToStorage(bitmap, imageName) { imageUrl ->
+                if (imageUrl != null) {
+                    uploadPostToLocalDb(userEmail.toString(), postText, imageUrl, selectedLabel, database)
+                } else {
+                    Toast.makeText(this, "Failed to upload image", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error processing image", Toast.LENGTH_SHORT).show()
+        }
+
+        val intent = Intent(this, MainActivity::class.java)
+        intent.putExtra("USER_EMAIL", userEmail.toString())
+        startActivity(intent)
+        finish() // Close the login activity
     }
+
+
 }
