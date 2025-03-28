@@ -63,12 +63,6 @@
                 android:text="@string/happy"
                 android:backgroundTint="#FFB4B4" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipMore"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/more"
-                android:backgroundTint="#DDDDDD" />
 
         </LinearLayout>
     </HorizontalScrollView>
