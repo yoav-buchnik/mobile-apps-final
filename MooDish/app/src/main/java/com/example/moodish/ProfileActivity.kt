@@ -125,6 +125,12 @@ class ProfileActivity : AppCompatActivity() {
                     showToast("Favorites functionality will be implemented soon")
                     true
                 }
+                R.id.nav_create_post -> {
+                    val intent = Intent(this, CreatePostActivity::class.java)
+                    intent.putExtra("USER_EMAIL", userEmail)
+                    startActivity(intent)
+                    true
+                }
                 R.id.nav_profile -> {
                     true
                 }

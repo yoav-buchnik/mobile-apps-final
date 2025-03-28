@@ -24,7 +24,6 @@ class MainActivity : AppCompatActivity() {
         setupRecyclerView()
         setupChipListeners()
         setupBottomNavigation()
-        setupAddPostButton()
     }
 
     private fun setupRecyclerView() {
@@ -65,6 +64,12 @@ class MainActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.nav_profile -> {
                     val intent = Intent(this, ProfileActivity::class.java)
+                    intent.putExtra("USER_EMAIL", userEmail)
+                    startActivity(intent)
+                    true
+                }
+                R.id.nav_create_post -> {
+                    val intent = Intent(this, CreatePostActivity::class.java)
                     intent.putExtra("USER_EMAIL", userEmail)
                     startActivity(intent)
                     true
