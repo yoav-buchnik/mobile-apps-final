@@ -80,13 +80,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupAddPostButton() {
-        binding.fabAddPost.setOnClickListener {
-            val intent = Intent(this, CreatePostActivity::class.java)
-            intent.putExtra("USER_EMAIL", userEmail)
-            startActivity(intent)
-        }
-    }
 
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
