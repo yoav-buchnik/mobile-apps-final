@@ -6,6 +6,7 @@ import com.example.moodish.data.model.Post
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.*
 
 
 object PostUtils {
@@ -18,6 +19,7 @@ object PostUtils {
         database: AppDatabase
     ) {
         val post = Post(
+            id = UUID.randomUUID().toString(),
             email = authorEmail,
             text = text,
             imageUrl = imageUri,
