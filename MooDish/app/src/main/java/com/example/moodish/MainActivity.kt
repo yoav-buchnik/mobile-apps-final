@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.moodish.databinding.ActivityMainBinding
 import android.content.Intent
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 
 class MainActivity : AppCompatActivity() {
@@ -51,6 +52,10 @@ class MainActivity : AppCompatActivity() {
                 filterRestaurants("Happy")
                 showToast("Happy clicked")
             }
+            chipMore.setOnClickListener {
+                showMoreCategories()
+                showToast("More clicked")
+            }
         }
     }
 
@@ -75,7 +80,6 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, CreatePostActivity::class.java)
             intent.putExtra("USER_EMAIL", userEmail)
             startActivity(intent)
-            finish()
         }
     }
 
