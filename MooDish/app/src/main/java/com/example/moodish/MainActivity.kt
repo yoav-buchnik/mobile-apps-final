@@ -6,12 +6,17 @@ import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.moodish.databinding.ActivityMainBinding
 import android.content.Intent
-import com.google.android.material.floatingactionbutton.FloatingActionButton
+import androidx.lifecycle.lifecycleScope
+import com.example.moodish.data.AppDatabase
+import com.example.moodish.adapter.PostAdapter
+import kotlinx.coroutines.launch
 
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private var userEmail: String? = null
+    private lateinit var database: AppDatabase
+    private lateinit var postAdapter: PostAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,15 +26,18 @@ class MainActivity : AppCompatActivity() {
         // Get user email from intent
         userEmail = intent.getStringExtra("USER_EMAIL")
         
+        database = AppDatabase.getDatabase(this)
         setupRecyclerView()
         setupChipListeners()
         setupBottomNavigation()
+        fetchPosts()
     }
 
     private fun setupRecyclerView() {
+        postAdapter = PostAdapter()
         binding.rvRestaurants.apply {
             layoutManager = LinearLayoutManager(this@MainActivity)
-            // TODO: Add adapter implementation
+            adapter = postAdapter
         }
     }
 
@@ -83,6 +91,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun fetchPosts() {
+        lifecycleScope.launch {
+            val posts = database.postDao().getAllPosts()
+            postAdapter.updatePosts(posts)
+        }
     }
 
     private fun filterRestaurants(category: String) {

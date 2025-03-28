@@ -12,8 +12,8 @@ interface PostDao {
     suspend fun insertPost(post: Post)
 
     @Query("SELECT * FROM posts WHERE email = :email")
-    suspend fun getAllUserPosts(email: String): Post?
+    suspend fun getAllUserPosts(email: String): List<Post>
 
     @Query("SELECT * FROM posts")
-    suspend fun getAllPosts(): Post?
+    suspend fun getAllPosts(): List<Post>
 }
