@@ -11,7 +11,7 @@ import com.example.moodish.data.dao.UserDao
 import com.example.moodish.data.model.Post
 import com.example.moodish.data.model.User
 
-@Database(entities = [User::class, Post::class], version = 3, exportSchema = false)
+@Database(entities = [User::class, Post::class], version = 4, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun userDao(): UserDao
@@ -56,6 +56,21 @@ abstract class AppDatabase : RoomDatabase() {
                 
                 database.execSQL("DROP TABLE posts")
                 database.execSQL("ALTER TABLE posts_new RENAME TO posts")
+            }
+        }
+
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("""
+            CREATE TABLE users (
+                id TEXT NOT NULL,
+                email TEXT NOT NULL PRIMARY KEY,
+                password TEXT NOT NULL,
+                name TEXT,
+                profilePicUrl TEXT,
+                lastLoginTimestamp INTEGER NOT NULL DEFAULT (strftime('%s', 'now') * 1000)
+            )
+        """)
             }
         }
     }

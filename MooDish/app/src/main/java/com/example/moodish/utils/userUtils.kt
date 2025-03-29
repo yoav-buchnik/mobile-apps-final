@@ -1,0 +1,66 @@
+package com.example.moodish.utils
+
+import com.example.moodish.data.AppDatabase
+import com.example.moodish.data.model.User
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.util.*
+
+
+object UserUtils {
+    fun uploadUser(
+        user: User,
+        database: AppDatabase
+    ){
+        uploadUserToLocalDb(user, database)
+        uploadUserToRemoteDb(user)
+    }
+    
+    private fun uploadUserToLocalDb(user: User, database: AppDatabase) {
+        CoroutineScope(Dispatchers.IO).launch {
+            database.userDao().insertUser(user)
+        }
+    }
+
+    private fun uploadUserToRemoteDb(user: User) {
+        val db = FirebaseFirestore.getInstance()
+        val usersref = db.collection("users")
+        
+        CoroutineScope(Dispatchers.Main).launch {
+            //Toast.makeText(context, "Attempting to upload user...", Toast.LENGTH_SHORT).show()
+        }
+
+        val userMap = hashMapOf(
+            "id" to user.id,
+            "email" to user.email,
+            "password" to user.password,
+            "name" to user.name,
+            "profilePicUrl" to user.profilePicUrl,
+            "lastLoginTimestamp" to user.lastLoginTimestamp
+        )
+
+        usersref.add(userMap)
+            .addOnSuccessListener { documentReference ->
+                // Use Main dispatcher for UI operations
+                CoroutineScope(Dispatchers.Main).launch {
+                    //Toast.makeText(
+                    //    context,
+                    //    "Post uploaded successfully! ID: ${documentReference.id}",
+                    //   Toast.LENGTH_LONG
+                    //).show()
+                }
+            }
+            .addOnFailureListener { e ->
+                // Use Main dispatcher for UI operations
+                CoroutineScope(Dispatchers.Main).launch {
+                    //Toast.makeText(
+                    //    context,
+                    //    "Failed to upload post: ${e.message}",
+                    //    Toast.LENGTH_LONG
+                    //).show()
+                }
+            }
+    }
+}

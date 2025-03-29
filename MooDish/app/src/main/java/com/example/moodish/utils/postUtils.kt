@@ -1,6 +1,5 @@
 package com.example.moodish.utils
 
-import android.util.Log
 import com.example.moodish.data.AppDatabase
 import com.example.moodish.data.model.Post
 import com.google.firebase.firestore.FirebaseFirestore
