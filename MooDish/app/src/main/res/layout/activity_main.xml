@@ -32,6 +32,14 @@
             android:padding="8dp">
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chipAll"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="@string/all"
+                android:backgroundTint="#E0E0E0" />
+
+            <com.google.android.material.chip.Chip
                 android:id="@+id/chipRomantic"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

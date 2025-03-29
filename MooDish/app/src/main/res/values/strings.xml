@@ -9,6 +9,7 @@
     <string name="solo">Solo</string>
     <string name="happy">Happy</string>
     <string name="more">More</string>
+    <string name="all">All</string>
     
     <!-- Login screen strings -->
     <string name="email">Email</string>
