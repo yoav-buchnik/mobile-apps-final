@@ -1,8 +1,10 @@
 package com.example.moodish
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.moodish.data.AppDatabase
@@ -16,6 +18,10 @@ import com.google.firebase.auth.FirebaseAuth
 import com.example.moodish.data.model.User
 import com.example.moodish.utils.NavigationUtils
 import com.example.moodish.utils.UserUtils
+import com.google.firebase.storage.FirebaseStorage
+import com.example.moodish.databinding.DialogEditProfileBinding
+import com.google.firebase.firestore.FirebaseFirestore
+import com.example.moodish.utils.ImageUtils
 
 class ProfileActivity : AppCompatActivity() {
 
@@ -43,18 +49,14 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun setupClickListeners() {
-        binding.btnChangePhoto.setOnClickListener {
-            showToast("Change photo functionality will be implemented soon")
-        }
-
         binding.btnEditProfile.setOnClickListener {
-            showToast("Edit profile functionality will be implemented soon")
+            showEditProfileDialog()
         }
 
         binding.btnLogout.setOnClickListener {
             // Simple Firebase sign out
             FirebaseAuth.getInstance().signOut()
-            
+
             // Return to login screen
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
@@ -90,25 +92,28 @@ class ProfileActivity : AppCompatActivity() {
 
     private fun updateUIWithUserData(user: User) {
         // Set user name
-        binding.tvName.text = user.name ?: "No name provided"
-        
+        binding.tvName.text = user.name ?: "No name"
+
         // Set user email
         binding.tvEmail.text = user.email
-        
+
         // Format and set last login date
         val sdf = SimpleDateFormat("MMMM d, yyyy 'at' HH:mm", Locale.getDefault())
         val lastLoginDate = Date(user.lastLoginTimestamp)
         binding.tvLastLogin.text = "Last login: ${sdf.format(lastLoginDate)}"
-        
+
         // Load profile image if available, otherwise use default
         if (!user.profilePicUrl.isNullOrEmpty()) {
-            Picasso.get()
-                .load(user.profilePicUrl)
-                .placeholder(R.drawable.default_profile)
-                .error(R.drawable.default_profile)
-                .into(binding.ivProfileImage)
-        } else {
-            binding.ivProfileImage.setImageResource(R.drawable.default_profile)
+            // Load profile image if available
+            user.profilePicUrl?.let { url ->
+                Picasso.get()
+                    .load(url)
+                    .placeholder(R.drawable.default_profile)
+                    .error(R.drawable.default_profile)
+                    .into(binding.ivProfileImage)
+            } ?: run {
+                binding.ivProfileImage.setImageResource(R.drawable.default_profile)
+            }
         }
     }
 
@@ -144,4 +149,94 @@ class ProfileActivity : AppCompatActivity() {
             currentDestination = R.id.nav_profile
         )
     }
-} 
+
+    private fun showEditProfileDialog() {
+        val dialogBinding = DialogEditProfileBinding.inflate(layoutInflater)
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Edit Profile")
+            .setView(dialogBinding.root)
+            .create()
+
+        // Pre-fill current values
+        dialogBinding.etName.setText(binding.tvName.text)
+
+        // Setup image picker
+        dialogBinding.btnSelectImage.setOnClickListener {
+            selectImageFromGallery()
+        }
+
+        dialogBinding.btnSave.setOnClickListener {
+            val newName = dialogBinding.etName.text.toString()
+            if (newName.isNotBlank()) {
+                updateUserProfile(newName)
+                dialog.dismiss()
+            } else {
+                showToast("Name cannot be empty")
+            }
+        }
+
+        dialogBinding.btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    private fun selectImageFromGallery() {
+        val intent = Intent(Intent.ACTION_PICK)
+        intent.type = "image/*"
+        startActivityForResult(intent, 1)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 1 && resultCode == RESULT_OK) {
+            data?.data?.let { uri ->
+                uploadImageToFirebase(uri)
+            }
+        }
+    }
+
+    private fun uploadImageToFirebase(imageUri: Uri) {
+        try {
+            val bitmap = ImageUtils.uriToBitmap(this, imageUri)
+            val imageName = "profile_${userEmail}_${System.currentTimeMillis()}"
+
+            ImageUtils.uploadImageToStorage(bitmap, imageName) { imageUrl ->
+                if (imageUrl != null) {
+                    updateUserProfilePicture(imageUrl)
+                } else {
+                    showToast("Failed to upload image")
+                }
+            }
+        } catch (e: Exception) {
+            showToast("Error processing image: ${e.message}")
+        }
+    }
+
+    private fun updateUserProfile(newName: String) {
+        lifecycleScope.launch {
+            val currentUser = database.userDao().getUserByEmail(userEmail!!)
+            if (currentUser != null) {
+                val updatedUser = currentUser.copy(name = newName)
+                database.userDao().insertUser(updatedUser)
+                UserUtils.updateUserInFirebase(updatedUser)
+                updateUIWithUserData(updatedUser)
+                showToast("Profile updated successfully")
+            }
+        }
+    }
+
+    fun updateUserProfilePicture(imageUrl: String) {
+        lifecycleScope.launch {
+            val currentUser = database.userDao().getUserByEmail(userEmail!!)
+            if (currentUser != null) {
+                val updatedUser = currentUser.copy(profilePicUrl = imageUrl)
+                database.userDao().insertUser(updatedUser)
+                UserUtils.updateUserInFirebase(updatedUser)
+                updateUIWithUserData(updatedUser)
+                showToast("Profile picture updated successfully")
+            }
+        }
+    }
+}
