@@ -121,7 +121,7 @@ class CreatePostActivity : AppCompatActivity() {
                     uploadPost(
                         authorEmail = userEmail!!,
                         text = postText,
-                        imageUri = imageUri.toString(),
+                        imageUrl = imageUrl.toString(),
                         label = selectedLabel,
                         database = database,
                         context = this

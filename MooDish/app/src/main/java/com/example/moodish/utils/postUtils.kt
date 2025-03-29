@@ -14,7 +14,7 @@ object PostUtils {
     fun uploadPost(
         authorEmail: String,
         text: String,
-        imageUri: String,
+        imageUrl: String,
         label: String,
         database: AppDatabase,
         context: android.content.Context
@@ -23,7 +23,7 @@ object PostUtils {
             id = UUID.randomUUID().toString(),
             email = authorEmail,
             text = text,
-            imageUrl = imageUri,
+            imageUrl = imageUrl,
             label = label,
             lastUpdated = System.currentTimeMillis()
         )
