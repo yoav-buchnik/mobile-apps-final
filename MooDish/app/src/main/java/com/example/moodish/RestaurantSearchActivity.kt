@@ -8,16 +8,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.moodish.adapter.RestaurantAdapter
 import com.example.moodish.data.model.Restaurant
 import com.example.moodish.databinding.ActivityRestaurantSearchBinding
-import com.example.moodish.utils.NavigationUtils
+import com.example.moodish.utils.navigationUtils
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
-import com.google.android.libraries.places.api.net.FindCurrentPlaceRequest
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
-import com.google.android.libraries.places.api.net.FetchPhotoRequest
 
 class RestaurantSearchActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRestaurantSearchBinding
@@ -60,7 +58,7 @@ class RestaurantSearchActivity : AppCompatActivity() {
     }
 
     private fun setupBottomNavigation() {
-        NavigationUtils.setupBottomNavigation(
+        navigationUtils.setupBottomNavigation(
             activity = this,
             bottomNav = binding.bottomNavigation,
             userEmail = userEmail,

@@ -16,11 +16,9 @@ import java.util.Date
 import java.util.Locale
 import com.google.firebase.auth.FirebaseAuth
 import com.example.moodish.data.model.User
-import com.example.moodish.utils.NavigationUtils
+import com.example.moodish.utils.navigationUtils
 import com.example.moodish.utils.UserUtils
-import com.google.firebase.storage.FirebaseStorage
 import com.example.moodish.databinding.DialogEditProfileBinding
-import com.google.firebase.firestore.FirebaseFirestore
 import com.example.moodish.utils.ImageUtils
 
 class ProfileActivity : AppCompatActivity() {
@@ -142,7 +140,7 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun setupBottomNavigation() {
-        NavigationUtils.setupBottomNavigation(
+        navigationUtils.setupBottomNavigation(
             activity = this,
             bottomNav = binding.bottomNavigation,
             userEmail = userEmail,

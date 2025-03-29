@@ -5,14 +5,13 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.moodish.databinding.ActivityMainBinding
-import android.content.Intent
 import androidx.lifecycle.lifecycleScope
 import com.example.moodish.data.AppDatabase
 import com.example.moodish.adapter.PostAdapter
 import com.example.moodish.data.model.Post
 import kotlinx.coroutines.launch
 import com.google.firebase.firestore.FirebaseFirestore
-import com.example.moodish.utils.NavigationUtils
+import com.example.moodish.utils.navigationUtils
 
 
 class MainActivity : AppCompatActivity() {
@@ -65,7 +64,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupBottomNavigation() {
-        NavigationUtils.setupBottomNavigation(
+        navigationUtils.setupBottomNavigation(
             activity = this,
             bottomNav = binding.bottomNavigation,
             userEmail = userEmail,
