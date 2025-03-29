@@ -8,9 +8,11 @@ import androidx.lifecycle.lifecycleScope
 import com.example.moodish.data.AppDatabase
 import com.example.moodish.data.model.User
 import com.example.moodish.databinding.ActivitySignupBinding
+import com.example.moodish.utils.UserUtils.uploadUser
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 class SignUpActivity : AppCompatActivity() {
     
@@ -62,13 +64,16 @@ class SignUpActivity : AppCompatActivity() {
                                 // Save user details locally
                                 lifecycleScope.launch {
                                     val user = User(
+                                        id = UUID.randomUUID().toString(),
                                         email = email,
                                         password = password, // Consider if you really need to store this
                                         name = name,
                                         profilePicUrl = null,
                                         lastLoginTimestamp = System.currentTimeMillis()
                                     )
-                                    database.userDao().insertUser(user)
+
+                                    uploadUser(user, database)
+
                                     showToast("Registration successful")
                                     navigateToLogin()
                                 }
