@@ -11,7 +11,7 @@ import com.example.moodish.adapter.PostAdapter
 import com.example.moodish.data.model.Post
 import kotlinx.coroutines.launch
 import com.google.firebase.firestore.FirebaseFirestore
-import com.example.moodish.utils.navigationUtils
+import com.example.moodish.utils.NavigationUtils
 
 
 class MainActivity : AppCompatActivity() {
@@ -64,7 +64,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupBottomNavigation() {
-        navigationUtils.setupBottomNavigation(
+        NavigationUtils.setupBottomNavigation(
             activity = this,
             bottomNav = binding.bottomNavigation,
             userEmail = userEmail,

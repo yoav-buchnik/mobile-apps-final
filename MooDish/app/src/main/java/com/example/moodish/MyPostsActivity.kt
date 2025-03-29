@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.moodish.adapter.PostAdapter
 import com.example.moodish.data.AppDatabase
 import com.example.moodish.databinding.ActivityMyPostsBinding
-import com.example.moodish.utils.navigationUtils
+import com.example.moodish.utils.NavigationUtils
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import com.example.moodish.data.model.Post
@@ -50,7 +50,7 @@ class MyPostsActivity : AppCompatActivity() {
     }
 
     private fun setupBottomNavigation() {
-        navigationUtils.setupBottomNavigation(
+        NavigationUtils.setupBottomNavigation(
             activity = this,
             bottomNav = binding.bottomNavigation,
             userEmail = userEmail,

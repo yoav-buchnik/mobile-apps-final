@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.moodish.adapter.RestaurantAdapter
 import com.example.moodish.data.model.Restaurant
 import com.example.moodish.databinding.ActivityRestaurantSearchBinding
-import com.example.moodish.utils.navigationUtils
+import com.example.moodish.utils.NavigationUtils
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.PlacesClient
@@ -58,7 +58,7 @@ class RestaurantSearchActivity : AppCompatActivity() {
     }
 
     private fun setupBottomNavigation() {
-        navigationUtils.setupBottomNavigation(
+        NavigationUtils.setupBottomNavigation(
             activity = this,
             bottomNav = binding.bottomNavigation,
             userEmail = userEmail,

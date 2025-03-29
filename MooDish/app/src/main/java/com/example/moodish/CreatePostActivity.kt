@@ -11,7 +11,7 @@ import com.example.moodish.data.AppDatabase
 import com.example.moodish.utils.ImageUtils.uploadImageToStorage
 import com.example.moodish.utils.ImageUtils.uriToBitmap
 import com.example.moodish.utils.PostUtils.uploadPost
-import com.example.moodish.utils.navigationUtils
+import com.example.moodish.utils.NavigationUtils
 
 
 class CreatePostActivity : AppCompatActivity() {
@@ -32,7 +32,7 @@ class CreatePostActivity : AppCompatActivity() {
     }
 
     private fun setupBottomNavigation() {
-        navigationUtils.setupBottomNavigation(
+        NavigationUtils.setupBottomNavigation(
             activity = this,
             bottomNav = binding.bottomNavigation,
             userEmail = userEmail,
