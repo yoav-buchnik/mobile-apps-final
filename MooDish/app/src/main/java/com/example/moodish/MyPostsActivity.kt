@@ -1,12 +1,10 @@
 package com.example.moodish
 
 import android.os.Bundle
-import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.moodish.MainActivity
 import com.example.moodish.adapter.PostAdapter
 import com.example.moodish.data.AppDatabase
 import com.example.moodish.databinding.ActivityMyPostsBinding
@@ -36,6 +34,7 @@ class MyPostsActivity : AppCompatActivity() {
         database = AppDatabase.getDatabase(this)
         setupRecyclerView()
         setupBottomNavigation()
+        setupSwipeRefresh()
         fetchUserPosts()
     }
 
@@ -48,6 +47,13 @@ class MyPostsActivity : AppCompatActivity() {
         binding.rvMyPosts.apply {
             layoutManager = LinearLayoutManager(this@MyPostsActivity)
             adapter = postAdapter
+        }
+    }
+
+    private fun setupSwipeRefresh() {
+        // Set the refresh listener to trigger syncPostsWithFirebase
+        binding.swipeRefresh.setOnRefreshListener {
+            fetchUserPosts()
         }
     }
 
@@ -102,6 +108,8 @@ class MyPostsActivity : AppCompatActivity() {
                                 // After syncing, fetch all posts from local DB
                                 fetchPosts()
 
+                                binding.swipeRefresh.isRefreshing = false
+
                                 if (documents.isEmpty) {
                                     Toast.makeText(
                                         this@MyPostsActivity,
@@ -116,6 +124,7 @@ class MyPostsActivity : AppCompatActivity() {
                                     ).show()
                                 }
                             } catch (e: Exception) {
+                                binding.swipeRefresh.isRefreshing = false
                                 Toast.makeText(
                                     this@MyPostsActivity,
                                     "Error syncing posts: ${e.message}",
@@ -126,6 +135,7 @@ class MyPostsActivity : AppCompatActivity() {
                         }
                     }
                     .addOnFailureListener { e ->
+                        binding.swipeRefresh.isRefreshing = false
                         Toast.makeText(
                             this@MyPostsActivity,
                             "Failed to fetch posts from Firebase: ${e.message}",
@@ -137,6 +147,7 @@ class MyPostsActivity : AppCompatActivity() {
                         }
                     }
             } catch (e: Exception) {
+                binding.swipeRefresh.isRefreshing = false
                 Toast.makeText(
                     this@MyPostsActivity,
                     "Error accessing local database: ${e.message}",
