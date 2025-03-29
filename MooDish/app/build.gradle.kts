@@ -73,7 +73,11 @@ dependencies {
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.firebase:firebase-firestore-ktx:24.10.0")
 
+    // Picasso
     implementation("com.squareup.picasso:picasso:2.8")
+
+    // Google Places
+    implementation("com.google.android.libraries.places:places:3.3.0")
     
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
