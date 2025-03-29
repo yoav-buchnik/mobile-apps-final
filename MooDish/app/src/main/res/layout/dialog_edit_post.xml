@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/etPostText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter post text"
+        android:minHeight="100dp"
+        android:gravity="top"
+        android:padding="8dp"
+        android:background="@android:drawable/editbox_background"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Select Label:"
+        android:textStyle="bold"/>
+
+    <RadioGroup
+        android:id="@+id/rgLabels"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp">
+
+        <RadioButton
+            android:id="@+id/rbRomantic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Romantic"/>
+
+        <RadioButton
+            android:id="@+id/rbFamily"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Family"/>
+
+        <RadioButton
+            android:id="@+id/rbSolo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Solo"/>
+
+        <RadioButton
+            android:id="@+id/rbHappy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Happy"/>
+    </RadioGroup>
+</LinearLayout> 

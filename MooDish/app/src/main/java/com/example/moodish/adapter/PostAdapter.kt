@@ -13,6 +13,8 @@ import com.squareup.picasso.Picasso
 import com.example.moodish.utils.PostUtils
 import com.example.moodish.data.AppDatabase
 import com.example.moodish.MyPostsActivity
+import com.example.moodish.R
+import com.example.moodish.databinding.DialogEditPostBinding
 
 class PostAdapter(
     private val isMyPostsPage: Boolean = false,
@@ -41,7 +43,7 @@ class PostAdapter(
 
             if (isMyPostsPage) {
                 binding.ibEditPost.setOnClickListener {
-                    Toast.makeText(itemView.context, "Edit post clicked", Toast.LENGTH_SHORT).show()
+                    showEditDialog(post)
                 }
 
                 binding.ibDeletePost.setOnClickListener {
@@ -67,6 +69,58 @@ class PostAdapter(
                         .show()
                 }
             }
+        }
+    }
+
+    private fun showEditDialog(post: Post) {
+        context?.let { ctx ->
+            // Create custom dialog layout
+            val dialogBinding = DialogEditPostBinding.inflate(LayoutInflater.from(ctx))
+            
+            // Pre-fill existing values
+            dialogBinding.etPostText.setText(post.text)
+            
+            // Setup label radio buttons
+            val labelGroup = dialogBinding.rgLabels
+            when (post.label) {
+                "Romantic" -> labelGroup.check(R.id.rbRomantic)
+                "Family" -> labelGroup.check(R.id.rbFamily)
+                "Solo" -> labelGroup.check(R.id.rbSolo)
+                "Happy" -> labelGroup.check(R.id.rbHappy)
+            }
+
+            AlertDialog.Builder(ctx)
+                .setTitle("Edit Post")
+                .setView(dialogBinding.root)
+                .setPositiveButton("Save") { dialog, _ ->
+                    val newText = dialogBinding.etPostText.text.toString()
+                    val newLabel = when (dialogBinding.rgLabels.checkedRadioButtonId) {
+                        R.id.rbRomantic -> "Romantic"
+                        R.id.rbFamily -> "Family"
+                        R.id.rbSolo -> "Solo"
+                        R.id.rbHappy -> "Happy"
+                        else -> post.label ?: ""
+                    }
+
+                    if (newText.isNotEmpty() && database != null) {
+                        PostUtils.editPost(
+                            post = post,
+                            newText = newText,
+                            newLabel = newLabel,
+                            database = database,
+                            context = ctx
+                        ) {
+                            // Refresh the posts after successful edit
+                            if (ctx is MyPostsActivity) {
+                                ctx.fetchUserPosts()
+                            }
+                        }
+                    } else {
+                        Toast.makeText(ctx, "Post text cannot be empty", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
         }
     }
 

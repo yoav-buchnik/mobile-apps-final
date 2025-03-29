@@ -132,4 +132,69 @@ object PostUtils {
                 }
             }
     }
+
+    fun editPost(
+        post: Post,
+        newText: String,
+        newLabel: String,
+        database: AppDatabase,
+        context: android.content.Context,
+        onSuccess: () -> Unit
+    ) {
+        val db = FirebaseFirestore.getInstance()
+        val postsRef = db.collection("posts")
+
+        val updatedPost = post.copy(
+            text = newText,
+            label = newLabel,
+            lastUpdated = System.currentTimeMillis()
+        )
+
+        // Query for the document with matching id
+        postsRef.whereEqualTo("id", post.id)
+            .get()
+            .addOnSuccessListener { documents ->
+                if (!documents.isEmpty) {
+                    val document = documents.documents[0]
+                    document.reference.update(
+                        mapOf(
+                            "text" to newText,
+                            "label" to newLabel,
+                            "lastUpdated" to System.currentTimeMillis()
+                        )
+                    ).addOnSuccessListener {
+                        // Update local database
+                        CoroutineScope(Dispatchers.IO).launch {
+                            database.postDao().insertPost(updatedPost)
+                            
+                            withContext(Dispatchers.Main) {
+                                android.widget.Toast.makeText(
+                                    context,
+                                    "Post updated successfully",
+                                    android.widget.Toast.LENGTH_SHORT
+                                ).show()
+                                onSuccess()
+                            }
+                        }
+                    }.addOnFailureListener { e ->
+                        CoroutineScope(Dispatchers.Main).launch {
+                            android.widget.Toast.makeText(
+                                context,
+                                "Failed to update post: ${e.message}",
+                                android.widget.Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                }
+            }
+            .addOnFailureListener { e ->
+                CoroutineScope(Dispatchers.Main).launch {
+                    android.widget.Toast.makeText(
+                        context,
+                        "Failed to find post: ${e.message}",
+                        android.widget.Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+    }
 }
