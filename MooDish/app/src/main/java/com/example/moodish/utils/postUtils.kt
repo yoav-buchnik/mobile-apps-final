@@ -22,7 +22,8 @@ object PostUtils {
         imageUrl: String,
         label: String,
         database: AppDatabase,
-        context: android.content.Context
+        context: android.content.Context,
+        onComplete: (success: Boolean) -> Unit
     ){
         val post = Post(
             id = UUID.randomUUID().toString(),
@@ -33,7 +34,9 @@ object PostUtils {
             lastUpdated = System.currentTimeMillis()
         )
         uploadPostToLocalDb(post, database)
-        uploadPostToRemoteDb(post, context)
+        uploadPostToRemoteDb(post, context) { success ->
+            onComplete(success)
+        }
     }
     
     private fun uploadPostToLocalDb(post: Post, database: AppDatabase) {
@@ -42,14 +45,10 @@ object PostUtils {
         }
     }
 
-    private fun uploadPostToRemoteDb(post: Post, context: android.content.Context) {
+    private fun uploadPostToRemoteDb(post: Post, context: android.content.Context, onComplete: (Boolean) -> Unit) {
         val db = FirebaseFirestore.getInstance()
         val postsref = db.collection("posts")
         
-        CoroutineScope(Dispatchers.Main).launch {
-            android.widget.Toast.makeText(context, "Attempting to upload post...", android.widget.Toast.LENGTH_SHORT).show()
-        }
-
         val postMap = hashMapOf(
             "id" to post.id,
             "email" to post.email,
@@ -61,24 +60,10 @@ object PostUtils {
 
         postsref.add(postMap)
             .addOnSuccessListener { documentReference ->
-                // Use Main dispatcher for UI operations
-                CoroutineScope(Dispatchers.Main).launch {
-                    android.widget.Toast.makeText(
-                        context,
-                        "Post uploaded successfully! ID: ${documentReference.id}",
-                        android.widget.Toast.LENGTH_LONG
-                    ).show()
-                }
+                onComplete(true)
             }
             .addOnFailureListener { e ->
-                // Use Main dispatcher for UI operations
-                CoroutineScope(Dispatchers.Main).launch {
-                    android.widget.Toast.makeText(
-                        context,
-                        "Failed to upload post: ${e.message}",
-                        android.widget.Toast.LENGTH_LONG
-                    ).show()
-                }
+                onComplete(false)
             }
     }
 

@@ -12,6 +12,7 @@ import com.example.moodish.utils.ImageUtils.uploadImageToStorage
 import com.example.moodish.utils.ImageUtils.uriToBitmap
 import com.example.moodish.utils.PostUtils.uploadPost
 import com.example.moodish.utils.NavigationUtils
+import android.app.ProgressDialog
 
 
 class CreatePostActivity : AppCompatActivity() {
@@ -79,29 +80,33 @@ class CreatePostActivity : AppCompatActivity() {
     }
 
     private fun savePost() {
-        val postText = binding.etPostText.text.toString().trim()
-        if (postText.isEmpty() || imageUri == null) {
-            Toast.makeText(this, "Please enter text and select an image", Toast.LENGTH_SHORT).show()
+        val postText = binding.etPostText.text.toString()
+        if (postText.isEmpty()) {
+            Toast.makeText(this, "Please enter some text", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val selectedLabel = when {
-            binding.chkRomantic.isChecked -> "Romantic"
-            binding.chkSolo.isChecked -> "Solo"
-            binding.chkHappy.isChecked -> "Happy"
-            binding.chkFamily.isChecked -> "Family"
-            else -> null
-        }
-
-        if (selectedLabel == null) {
-            Toast.makeText(this, "Please select one label", Toast.LENGTH_SHORT).show()
+        val selectedLabel = getSelectedLabel()
+        if (selectedLabel.isEmpty()) {
+            Toast.makeText(this, "Please select a label", Toast.LENGTH_SHORT).show()
             return
         }
+
+        if (imageUri == null) {
+            Toast.makeText(this, "Please select an image", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Show progress spinner
+        val progressDialog = android.app.ProgressDialog(this)
+        progressDialog.setMessage("Uploading post...")
+        progressDialog.setCancelable(false)
+        progressDialog.show()
 
         try {
             val bitmap = uriToBitmap(this, imageUri!!)
             val imageName = "post_${System.currentTimeMillis()}"
-
+            
             uploadImageToStorage(bitmap, imageName) { imageUrl ->
                 if (imageUrl != null) {
                     uploadPost(
@@ -111,20 +116,36 @@ class CreatePostActivity : AppCompatActivity() {
                         label = selectedLabel,
                         database = database,
                         context = this
-                    )
+                    ) { success ->
+                        progressDialog.dismiss()
+                        if (success) {
+                            // Navigate back to main
+                            val intent = Intent(this, MainActivity::class.java)
+                            intent.putExtra("USER_EMAIL", userEmail.toString())
+                            startActivity(intent)
+                            finish()
+                        } else {
+                            Toast.makeText(this, "Failed to create post", Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 } else {
+                    progressDialog.dismiss()
                     Toast.makeText(this, "Failed to upload image", Toast.LENGTH_SHORT).show()
                 }
             }
         } catch (e: Exception) {
+            progressDialog.dismiss()
             Toast.makeText(this, "Error processing image", Toast.LENGTH_SHORT).show()
         }
-
-        val intent = Intent(this, MainActivity::class.java)
-        intent.putExtra("USER_EMAIL", userEmail.toString())
-        startActivity(intent)
-        finish() // Close the login activity
     }
 
-
+    private fun getSelectedLabel(): String {
+        return when {
+            binding.chkRomantic.isChecked -> "Romantic"
+            binding.chkSolo.isChecked -> "Solo"
+            binding.chkHappy.isChecked -> "Happy"
+            binding.chkFamily.isChecked -> "Family"
+            else -> ""
+        }
+    }
 }
