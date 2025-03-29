@@ -61,10 +61,6 @@ class MainActivity : AppCompatActivity() {
                 filterRestaurants("Happy")
                 showToast("Happy clicked")
             }
-            chipMore.setOnClickListener {
-                showMoreCategories()
-                showToast("More clicked")
-            }
         }
     }
 
