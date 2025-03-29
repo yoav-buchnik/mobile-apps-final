@@ -14,6 +14,7 @@ import java.util.Date
 import java.util.Locale
 import com.google.firebase.auth.FirebaseAuth
 import com.example.moodish.data.model.User
+import com.example.moodish.utils.NavigationUtils
 
 class ProfileActivity : AppCompatActivity() {
 
@@ -110,32 +111,11 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun setupBottomNavigation() {
-        binding.bottomNavigation.inflateMenu(R.menu.bottom_navigation_menu)
-        binding.bottomNavigation.selectedItemId = R.id.nav_profile
-        
-        binding.bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_home -> {
-                    val intent = Intent(this, MainActivity::class.java)
-                    intent.putExtra("USER_EMAIL", userEmail)
-                    startActivity(intent)
-                    true
-                }
-                R.id.nav_favorites -> {
-                    showToast("Favorites functionality will be implemented soon")
-                    true
-                }
-                R.id.nav_create_post -> {
-                    val intent = Intent(this, CreatePostActivity::class.java)
-                    intent.putExtra("USER_EMAIL", userEmail)
-                    startActivity(intent)
-                    true
-                }
-                R.id.nav_profile -> {
-                    true
-                }
-                else -> false
-            }
-        }
+        NavigationUtils.setupBottomNavigation(
+            activity = this,
+            bottomNav = binding.bottomNavigation,
+            userEmail = userEmail,
+            currentDestination = R.id.nav_profile
+        )
     }
 } 
