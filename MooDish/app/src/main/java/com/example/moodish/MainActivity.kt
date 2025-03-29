@@ -47,19 +47,18 @@ class MainActivity : AppCompatActivity() {
         binding.apply {
             chipRomantic.setOnClickListener {
                 filterRestaurants("Romantic")
-                showToast("Romantic clicked")
             }
             chipFamily.setOnClickListener {
                 filterRestaurants("Family")
-                showToast("Family clicked")
             }
             chipSolo.setOnClickListener {
                 filterRestaurants("Solo")
-                showToast("Solo clicked")
             }
             chipHappy.setOnClickListener {
                 filterRestaurants("Happy")
-                showToast("Happy clicked")
+            }
+            chipAll.setOnClickListener {
+                fetchPosts()
             }
         }
     }
@@ -150,7 +149,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun filterRestaurants(category: String) {
-        // TODO: Implement filtering logic
+        lifecycleScope.launch {
+            val filteredPosts = database.postDao().getAllPosts().filter { post ->
+                post.label == category
+            }
+            postAdapter.updatePosts(filteredPosts)
+        }
     }
 
     private fun showMoreCategories() {
