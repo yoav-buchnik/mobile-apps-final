@@ -10,7 +10,7 @@ import com.example.moodish.databinding.ActivityCreatePostBinding
 import com.example.moodish.data.AppDatabase
 import com.example.moodish.utils.ImageUtils.uploadImageToStorage
 import com.example.moodish.utils.ImageUtils.uriToBitmap
-import com.example.moodish.utils.PostUtils.uploadPostToLocalDb
+import com.example.moodish.utils.PostUtils.uploadPost
 
 
 class CreatePostActivity : AppCompatActivity() {
@@ -118,7 +118,14 @@ class CreatePostActivity : AppCompatActivity() {
 
             uploadImageToStorage(bitmap, imageName) { imageUrl ->
                 if (imageUrl != null) {
-                    uploadPostToLocalDb(userEmail.toString(), postText, imageUrl, selectedLabel, database)
+                    uploadPost(
+                        authorEmail = userEmail!!,
+                        text = postText,
+                        imageUrl = imageUrl.toString(),
+                        label = selectedLabel,
+                        database = database,
+                        context = this
+                    )
                 } else {
                     Toast.makeText(this, "Failed to upload image", Toast.LENGTH_SHORT).show()
                 }

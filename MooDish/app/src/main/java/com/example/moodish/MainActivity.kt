@@ -9,7 +9,9 @@ import android.content.Intent
 import androidx.lifecycle.lifecycleScope
 import com.example.moodish.data.AppDatabase
 import com.example.moodish.adapter.PostAdapter
+import com.example.moodish.data.model.Post
 import kotlinx.coroutines.launch
+import com.google.firebase.firestore.FirebaseFirestore
 
 
 class MainActivity : AppCompatActivity() {
@@ -30,7 +32,7 @@ class MainActivity : AppCompatActivity() {
         setupRecyclerView()
         setupChipListeners()
         setupBottomNavigation()
-        fetchPosts()
+        syncPostsWithFirebase()
     }
 
     private fun setupRecyclerView() {
@@ -91,6 +93,57 @@ class MainActivity : AppCompatActivity() {
 
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun syncPostsWithFirebase() {
+        val db = FirebaseFirestore.getInstance()
+        val postsRef = db.collection("posts")
+
+        postsRef.get()
+            .addOnSuccessListener { documents ->
+                lifecycleScope.launch {
+                    try {
+                        // First, delete all existing posts from local DB
+                        database.postDao().deleteAllPosts()
+
+                        // Then insert all posts from Firebase
+                        for (document in documents) {
+                            val post = Post(
+                                id = document.getString("id") ?: "",
+                                email = document.getString("email") ?: "",
+                                text = document.getString("text") ?: "",
+                                imageUrl = document.getString("imageUrl"),
+                                label = document.getString("label"),
+                                lastUpdated = document.getLong("lastUpdated")
+                            )
+                            database.postDao().insertPost(post)
+                        }
+                        // After syncing, fetch all posts from local DB
+                        fetchPosts()
+                        Toast.makeText(
+                            this@MainActivity,
+                            "Posts synchronized successfully",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } catch (e: Exception) {
+                        Toast.makeText(
+                            this@MainActivity,
+                            "Error syncing posts: ${e.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        fetchPosts()
+                    }
+                }
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(
+                    this,
+                    "Failed to fetch posts from Firebase: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+                // If sync fails, still show local posts
+                fetchPosts()
+            }
     }
 
     private fun fetchPosts() {
