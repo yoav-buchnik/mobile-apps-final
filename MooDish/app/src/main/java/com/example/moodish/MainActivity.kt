@@ -12,6 +12,7 @@ import com.example.moodish.data.model.Post
 import kotlinx.coroutines.launch
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.moodish.utils.NavigationUtils
+import android.view.View
 
 
 class MainActivity : AppCompatActivity() {
@@ -80,6 +81,9 @@ class MainActivity : AppCompatActivity() {
     private fun syncPostsWithFirebase() {
         val db = FirebaseFirestore.getInstance()
         val postsRef = db.collection("posts")
+        
+        // Show loading spinner
+        binding.progressBar.visibility = View.VISIBLE
 
         postsRef.get()
             .addOnSuccessListener { documents ->
@@ -102,12 +106,9 @@ class MainActivity : AppCompatActivity() {
                         }
                         // After syncing, fetch all posts from local DB
                         fetchPosts()
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Posts synchronized successfully",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        binding.progressBar.visibility = View.GONE
                     } catch (e: Exception) {
+                        binding.progressBar.visibility = View.GONE
                         Toast.makeText(
                             this@MainActivity,
                             "Error syncing posts: ${e.message}",
@@ -118,6 +119,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             .addOnFailureListener { e ->
+                binding.progressBar.visibility = View.GONE
                 Toast.makeText(
                     this,
                     "Failed to fetch posts from Firebase: ${e.message}",

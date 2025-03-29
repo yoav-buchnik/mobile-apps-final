@@ -119,8 +119,7 @@ class CreatePostActivity : AppCompatActivity() {
                     ) { success ->
                         progressDialog.dismiss()
                         if (success) {
-                            Toast.makeText(this, "Post created successfully", Toast.LENGTH_SHORT).show()
-                            // Navigate back to main activity
+                            // Navigate back to main
                             val intent = Intent(this, MainActivity::class.java)
                             intent.putExtra("USER_EMAIL", userEmail.toString())
                             startActivity(intent)
