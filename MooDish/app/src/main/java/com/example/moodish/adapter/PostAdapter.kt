@@ -1,5 +1,7 @@
 package com.example.moodish.adapter
 
+import android.app.AlertDialog
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,8 +10,15 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.moodish.data.model.Post
 import com.example.moodish.databinding.ItemPostBinding
 import com.squareup.picasso.Picasso
+import com.example.moodish.utils.PostUtils
+import com.example.moodish.data.AppDatabase
+import com.example.moodish.MyPostsActivity
 
-class PostAdapter(private val isMyPostsPage: Boolean = false) : RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
+class PostAdapter(
+    private val isMyPostsPage: Boolean = false,
+    private val context: Context? = null,
+    private val database: AppDatabase? = null
+) : RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
     private var posts = listOf<Post>()
 
     inner class PostViewHolder(private val binding: ItemPostBinding) : RecyclerView.ViewHolder(binding.root) {
@@ -36,7 +45,26 @@ class PostAdapter(private val isMyPostsPage: Boolean = false) : RecyclerView.Ada
                 }
 
                 binding.ibDeletePost.setOnClickListener {
-                    Toast.makeText(itemView.context, "Delete post clicked", Toast.LENGTH_SHORT).show()
+                    // Show confirmation dialog
+                    AlertDialog.Builder(itemView.context)
+                        .setTitle("Delete Post")
+                        .setMessage("Are you sure you want to delete this post?")
+                        .setPositiveButton("Delete") { _, _ ->
+                            if (context != null && database != null) {
+                                PostUtils.deletePost(
+                                    post = post,
+                                    database = database,
+                                    context = context
+                                ) {
+                                    // Refresh the posts after successful deletion
+                                    if (context is MyPostsActivity) {
+                                        context.fetchUserPosts()
+                                    }
+                                }
+                            }
+                        }
+                        .setNegativeButton("Cancel", null)
+                        .show()
                 }
             }
         }
