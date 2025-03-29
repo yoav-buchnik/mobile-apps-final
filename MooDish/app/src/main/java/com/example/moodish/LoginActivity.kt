@@ -6,8 +6,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.moodish.data.AppDatabase
-import com.example.moodish.data.model.User
 import com.example.moodish.databinding.ActivityLoginBinding
+import com.example.moodish.utils.UserUtils.updateUserInFirebase
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
@@ -31,7 +31,11 @@ class LoginActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 val user = database.userDao().getUserByEmail(currentUser.email!!)
                 if (user != null) {
-                    database.userDao().insertUser(user.copy(lastLoginTimestamp = System.currentTimeMillis()))
+                    val lastLoginUpdate = System.currentTimeMillis()
+                    val updatedUser = user
+                    updatedUser.lastLoginTimestamp = lastLoginUpdate
+                    updateUserInFirebase(updatedUser)
+                    database.userDao().insertUser(user.copy(lastLoginTimestamp = lastLoginUpdate))
                 }
             }
             val intent = Intent(this, MainActivity::class.java)

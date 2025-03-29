@@ -12,5 +12,5 @@ data class User(
     val password: String,
     val name: String? = null,
     val profilePicUrl: String? = null,
-    val lastLoginTimestamp: Long = System.currentTimeMillis()
+    var lastLoginTimestamp: Long = System.currentTimeMillis()
 )

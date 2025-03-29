@@ -29,37 +29,20 @@ object UserUtils {
         val usersref = db.collection("users")
         
         CoroutineScope(Dispatchers.Main).launch {
-            //Toast.makeText(context, "Attempting to upload user...", Toast.LENGTH_SHORT).show()
+            android.util.Log.d("UserUtils", "Attempting to upload user...")
         }
 
-        val userMap = hashMapOf(
-            "id" to user.id,
-            "email" to user.email,
-            "password" to user.password,
-            "name" to user.name,
-            "profilePicUrl" to user.profilePicUrl,
-            "lastLoginTimestamp" to user.lastLoginTimestamp
-        )
-
-        usersref.add(userMap)
+        usersref.add(convertUserToMap(user))
             .addOnSuccessListener { documentReference ->
                 // Use Main dispatcher for UI operations
                 CoroutineScope(Dispatchers.Main).launch {
-                    //Toast.makeText(
-                    //    context,
-                    //    "Post uploaded successfully! ID: ${documentReference.id}",
-                    //   Toast.LENGTH_LONG
-                    //).show()
+                    android.util.Log.d("UserUtils", "User uploaded successfully! ID: ${documentReference.id}")
                 }
             }
             .addOnFailureListener { e ->
                 // Use Main dispatcher for UI operations
                 CoroutineScope(Dispatchers.Main).launch {
-                    //Toast.makeText(
-                    //    context,
-                    //    "Failed to upload post: ${e.message}",
-                    //    Toast.LENGTH_LONG
-                    //).show()
+                    android.util.Log.e("UserUtils", "Failed to upload user: ${e.message}")
                 }
             }
     }
@@ -92,5 +75,47 @@ object UserUtils {
             .addOnFailureListener { e ->
                 onFailure(e)
             }
+    }
+
+    fun updateUserInFirebase(
+        updatedUser: User,
+    ){
+        val db = FirebaseFirestore.getInstance()
+        val usersRef = db.collection("users")
+
+        usersRef.whereEqualTo("email", updatedUser.email)
+            .get()
+            .addOnSuccessListener { documents ->
+                if (!documents.isEmpty) {
+                    val documentId = documents.documents[0].id
+
+                    usersRef.document(documentId)
+                        .update(convertUserToMap(updatedUser))
+                        .addOnSuccessListener {
+                            android.util.Log.d("UserUtils", "User updated successfully!")
+                            //onSuccess(updatedUser)
+                        }
+                        .addOnFailureListener { e ->
+                            android.util.Log.e("UserUtils", "Failed to update user: ${e.message}")
+                            //onFailure(e)
+                        }
+                } else {
+                    //onFailure(Exception("User not found in Firebase"))
+                }
+            }
+            .addOnFailureListener { e ->
+                //onFailure(e)
+            }
+    }
+
+    private fun convertUserToMap(user: User): Map<String, Any?> {
+        return mapOf(
+            "id" to user.id,
+            "email" to user.email,
+            "password" to user.password,
+            "name" to user.name,
+            "profilePicUrl" to user.profilePicUrl,
+            "lastLoginTimestamp" to user.lastLoginTimestamp
+        )
     }
 }
