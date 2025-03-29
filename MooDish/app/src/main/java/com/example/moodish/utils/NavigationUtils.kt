@@ -26,8 +26,12 @@ object NavigationUtils {
                     }
                     true
                 }
-                R.id.nav_favorites -> {
-                    Toast.makeText(activity, "Favorites functionality will be implemented soon", Toast.LENGTH_SHORT).show()
+                R.id.nav_search -> {
+                    if (currentDestination != R.id.nav_search) {
+                        val intent = Intent(activity, RestaurantSearchActivity::class.java)
+                        intent.putExtra("USER_EMAIL", userEmail)
+                        activity.startActivity(intent)
+                    }
                     true
                 }
                 R.id.nav_create_post -> {

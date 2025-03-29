@@ -53,4 +53,9 @@
     <string name="edit_post_text">Enter post text</string>
     <string name="edit_post_image">Change Image</string>
     <string name="edit_post_label">Select Label:</string>
+
+    <!-- Search Restaurant strings -->
+    <string name="search_restaurant">Search Restaurant</string>
+    <string name="search_city">Enter city name</string>
+    <string name="search">Search</string>
 </resources>
