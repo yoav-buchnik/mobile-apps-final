@@ -15,6 +15,7 @@ import java.util.Locale
 import com.google.firebase.auth.FirebaseAuth
 import com.example.moodish.data.model.User
 import com.example.moodish.utils.NavigationUtils
+import com.example.moodish.utils.UserUtils
 
 class ProfileActivity : AppCompatActivity() {
 
@@ -62,47 +63,72 @@ class ProfileActivity : AppCompatActivity() {
 
     private fun loadUserProfile() {
         lifecycleScope.launch {
-            val user = database.userDao().getUserByEmail(userEmail!!)
-            if (user != null) {
-                // Set user name
-                binding.tvName.text = user.name ?: "No name provided"
-                
-                // Set user email
-                binding.tvEmail.text = user.email
-                
-                // Format and set last login date
-                val sdf = SimpleDateFormat("MMMM d, yyyy 'at' HH:mm", Locale.getDefault())
-                val lastLoginDate = Date(user.lastLoginTimestamp)
-                binding.tvLastLogin.text = "Last login: ${sdf.format(lastLoginDate)}"
-                
-                // Load profile image if available, otherwise use default
-                if (!user.profilePicUrl.isNullOrEmpty()) {
-                    Picasso.get()
-                        .load(user.profilePicUrl)
-                        .placeholder(R.drawable.default_profile)
-                        .error(R.drawable.default_profile)
-                        .into(binding.ivProfileImage)
-                } else {
-                    binding.ivProfileImage.setImageResource(R.drawable.default_profile)
+            // First try Firebase
+            UserUtils.fetchUserFromFirebase(
+                email = userEmail!!,
+                onSuccess = { firebaseUser ->
+                    // Update local database with remote data
+                    lifecycleScope.launch {
+                        database.userDao().insertUser(firebaseUser)
+                        updateUIWithUserData(firebaseUser)
+                    }
+                },
+                onFailure = { _ ->
+                    // Fallback to local database
+                    lifecycleScope.launch {
+                        val localUser = database.userDao().getUserByEmail(userEmail!!)
+                        if (localUser != null) {
+                            updateUIWithUserData(localUser)
+                        } else {
+                            handleMissingUser()
+                        }
+                    }
                 }
-            } else {
-                // If user not found in local DB but we have Firebase auth, create local entry
-                val firebaseUser = FirebaseAuth.getInstance().currentUser
-                if (firebaseUser != null) {
-                    val newUser = User(
-                        email = firebaseUser.email!!,
-                        password = "", // Don't store the password
-                        name = firebaseUser.displayName,
-                        profilePicUrl = firebaseUser.photoUrl?.toString(),
-                        lastLoginTimestamp = System.currentTimeMillis()
-                    )
-                    database.userDao().insertUser(newUser)
-                    loadUserProfile() // Reload the profile
-                } else {
-                    showToast("User not found")
-                    finish()
-                }
+            )
+        }
+    }
+
+    private fun updateUIWithUserData(user: User) {
+        // Set user name
+        binding.tvName.text = user.name ?: "No name provided"
+        
+        // Set user email
+        binding.tvEmail.text = user.email
+        
+        // Format and set last login date
+        val sdf = SimpleDateFormat("MMMM d, yyyy 'at' HH:mm", Locale.getDefault())
+        val lastLoginDate = Date(user.lastLoginTimestamp)
+        binding.tvLastLogin.text = "Last login: ${sdf.format(lastLoginDate)}"
+        
+        // Load profile image if available, otherwise use default
+        if (!user.profilePicUrl.isNullOrEmpty()) {
+            Picasso.get()
+                .load(user.profilePicUrl)
+                .placeholder(R.drawable.default_profile)
+                .error(R.drawable.default_profile)
+                .into(binding.ivProfileImage)
+        } else {
+            binding.ivProfileImage.setImageResource(R.drawable.default_profile)
+        }
+    }
+
+    private fun handleMissingUser() {
+        val firebaseUser = FirebaseAuth.getInstance().currentUser
+        if (firebaseUser != null) {
+            val newUser = User(
+                email = firebaseUser.email!!,
+                password = "", // Don't store the password
+                name = firebaseUser.displayName,
+                profilePicUrl = firebaseUser.photoUrl?.toString(),
+                lastLoginTimestamp = System.currentTimeMillis()
+            )
+            lifecycleScope.launch {
+                database.userDao().insertUser(newUser)
+                updateUIWithUserData(newUser)
             }
+        } else {
+            showToast("User not found")
+            finish()
         }
     }
 

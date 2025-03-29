@@ -63,4 +63,34 @@ object UserUtils {
                 }
             }
     }
+
+    fun fetchUserFromFirebase(
+        email: String,
+        onSuccess: (User) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val db = FirebaseFirestore.getInstance()
+        val usersRef = db.collection("users")
+            .whereEqualTo("email", email)
+            .get()
+            .addOnSuccessListener { documents ->
+                if (!documents.isEmpty) {
+                    val document = documents.documents[0]
+                    val user = User(
+                        id = document.getString("id") ?: UUID.randomUUID().toString(),
+                        email = document.getString("email") ?: "",
+                        password = "", // Don't store the password locally
+                        name = document.getString("name"),
+                        profilePicUrl = document.getString("profilePicUrl"),
+                        lastLoginTimestamp = document.getLong("lastLoginTimestamp") ?: System.currentTimeMillis()
+                    )
+                    onSuccess(user)
+                } else {
+                    onFailure(Exception("User not found in Firebase"))
+                }
+            }
+            .addOnFailureListener { e ->
+                onFailure(e)
+            }
+    }
 }
