@@ -38,7 +38,11 @@ class MyPostsActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        postAdapter = PostAdapter()
+        postAdapter = PostAdapter(
+            isMyPostsPage = true,
+            context = this,
+            database = database
+        )
         binding.rvMyPosts.apply {
             layoutManager = LinearLayoutManager(this@MyPostsActivity)
             adapter = postAdapter
@@ -54,7 +58,7 @@ class MyPostsActivity : AppCompatActivity() {
         )
     }
 
-    private fun fetchUserPosts() {
+    fun fetchUserPosts() {
         // First, try to get posts from local database
         lifecycleScope.launch {
             try {
