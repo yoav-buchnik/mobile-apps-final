@@ -9,6 +9,7 @@
     <string name="solo">Solo</string>
     <string name="happy">Happy</string>
     <string name="more">More</string>
+    <string name="all">All</string>
     
     <!-- Login screen strings -->
     <string name="email">Email</string>
@@ -38,6 +39,7 @@
     <string name="menu_favorites">Favorites</string>
     <string name="menu_profile">Profile</string>
     <string name="menu_add">Add</string>
+    <string name="menu_my_posts">My Posts</string>
 
     <!-- Bottom create post strings -->
     <string name="add_post">Add Post</string>

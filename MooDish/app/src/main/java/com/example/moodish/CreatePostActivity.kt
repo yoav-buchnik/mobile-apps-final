@@ -11,6 +11,7 @@ import com.example.moodish.data.AppDatabase
 import com.example.moodish.utils.ImageUtils.uploadImageToStorage
 import com.example.moodish.utils.ImageUtils.uriToBitmap
 import com.example.moodish.utils.PostUtils.uploadPost
+import com.example.moodish.utils.NavigationUtils
 
 
 class CreatePostActivity : AppCompatActivity() {
@@ -31,27 +32,12 @@ class CreatePostActivity : AppCompatActivity() {
     }
 
     private fun setupBottomNavigation() {
-        binding.bottomNavigation.inflateMenu(R.menu.bottom_navigation_menu)
-        binding.bottomNavigation.selectedItemId = R.id.nav_create_post
-        
-        binding.bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_home -> {
-                    val intent = Intent(this, MainActivity::class.java)
-                    intent.putExtra("USER_EMAIL", userEmail)
-                    startActivity(intent)
-                    true
-                }
-                R.id.nav_profile -> {
-                    val intent = Intent(this, ProfileActivity::class.java)
-                    intent.putExtra("USER_EMAIL", userEmail)
-                    startActivity(intent)
-                    true
-                }
-                R.id.nav_create_post -> true
-                else -> false
-            }
-        }
+        NavigationUtils.setupBottomNavigation(
+            activity = this,
+            bottomNav = binding.bottomNavigation,
+            userEmail = userEmail,
+            currentDestination = R.id.nav_create_post
+        )
     }
 
     private fun setupClickListeners() {
