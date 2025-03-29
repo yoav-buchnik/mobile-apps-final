@@ -12,6 +12,7 @@ import com.example.moodish.adapter.PostAdapter
 import com.example.moodish.data.model.Post
 import kotlinx.coroutines.launch
 import com.google.firebase.firestore.FirebaseFirestore
+import com.example.moodish.utils.NavigationUtils
 
 
 class MainActivity : AppCompatActivity() {
@@ -64,25 +65,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupBottomNavigation() {
-        binding.bottomNavigation.inflateMenu(R.menu.bottom_navigation_menu)
-        binding.bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_profile -> {
-                    val intent = Intent(this, ProfileActivity::class.java)
-                    intent.putExtra("USER_EMAIL", userEmail)
-                    startActivity(intent)
-                    true
-                }
-                R.id.nav_create_post -> {
-                    val intent = Intent(this, CreatePostActivity::class.java)
-                    intent.putExtra("USER_EMAIL", userEmail)
-                    startActivity(intent)
-                    true
-                }
-                // Handle other menu items
-                else -> false
-            }
-        }
+        NavigationUtils.setupBottomNavigation(
+            activity = this,
+            bottomNav = binding.bottomNavigation,
+            userEmail = userEmail,
+            currentDestination = R.id.nav_home
+        )
     }
 
 
