@@ -8,6 +8,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.moodish.data.AppDatabase
 import com.example.moodish.databinding.ActivityLoginBinding
 import com.example.moodish.utils.UserUtils.updateUserInFirebase
+import com.example.moodish.utils.UserUtils.updateUserTimestamp
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
@@ -31,11 +32,7 @@ class LoginActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 val user = database.userDao().getUserByEmail(currentUser.email!!)
                 if (user != null) {
-                    val lastLoginUpdate = System.currentTimeMillis()
-                    val updatedUser = user
-                    updatedUser.lastLoginTimestamp = lastLoginUpdate
-                    updateUserInFirebase(updatedUser)
-                    database.userDao().insertUser(user.copy(lastLoginTimestamp = lastLoginUpdate))
+                    updateUserTimestamp(user, database)
                 }
             }
             val intent = Intent(this, MainActivity::class.java)
@@ -47,7 +44,7 @@ class LoginActivity : AppCompatActivity() {
         
         setupClickListeners()
     }
-    
+
     private fun setupClickListeners() {
         binding.btnLogin.setOnClickListener {
             val email = binding.etEmail.editText?.text.toString()
@@ -77,6 +74,7 @@ class LoginActivity : AppCompatActivity() {
                         val user = database.userDao().getUserByEmail(email)
                         if (user != null) {
                             database.userDao().insertUser(user.copy(lastLoginTimestamp = System.currentTimeMillis()))
+                            updateUserTimestamp(user, database)
                         }
                     }
                     showToast("Login successful")

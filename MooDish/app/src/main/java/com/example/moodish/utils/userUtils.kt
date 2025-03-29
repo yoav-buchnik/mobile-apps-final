@@ -108,6 +108,14 @@ object UserUtils {
             }
     }
 
+    suspend fun updateUserTimestamp(user: User, database: AppDatabase){
+        val lastLoginUpdate = System.currentTimeMillis()
+        val updatedUser = user
+        updatedUser.lastLoginTimestamp = lastLoginUpdate
+        updateUserInFirebase(updatedUser)
+        database.userDao().insertUser(user.copy(lastLoginTimestamp = lastLoginUpdate))
+    }
+
     private fun convertUserToMap(user: User): Map<String, Any?> {
         return mapOf(
             "id" to user.id,
