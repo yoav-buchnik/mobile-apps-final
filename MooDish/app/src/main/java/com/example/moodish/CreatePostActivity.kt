@@ -10,7 +10,7 @@ import com.example.moodish.databinding.ActivityCreatePostBinding
 import com.example.moodish.data.AppDatabase
 import com.example.moodish.utils.ImageUtils.uploadImageToStorage
 import com.example.moodish.utils.ImageUtils.uriToBitmap
-import com.example.moodish.utils.PostUtils.uploadPostToLocalDb
+import com.example.moodish.utils.PostUtils
 
 
 class CreatePostActivity : AppCompatActivity() {
@@ -88,15 +88,11 @@ class CreatePostActivity : AppCompatActivity() {
         }
     }
 
-    private fun savePostInDb(postText: String, imageUrl: String, selectedLabel: String) {
-
-    }
-
-    private fun savePost() {
+    private fun validatePost(): Pair<String, String>?{
         val postText = binding.etPostText.text.toString().trim()
         if (postText.isEmpty() || imageUri == null) {
             Toast.makeText(this, "Please enter text and select an image", Toast.LENGTH_SHORT).show()
-            return
+            return null
         }
 
         val selectedLabel = when {
@@ -109,8 +105,17 @@ class CreatePostActivity : AppCompatActivity() {
 
         if (selectedLabel == null) {
             Toast.makeText(this, "Please select one label", Toast.LENGTH_SHORT).show()
-            return
+            return null
         }
+
+        return Pair(postText, selectedLabel)
+    }
+
+    private fun savePost() {
+        val validationResult = validatePost()
+        if (validationResult == null) return
+
+        val (postText, selectedLabel) = validationResult
 
         try {
             val bitmap = uriToBitmap(this, imageUri!!)
@@ -118,7 +123,15 @@ class CreatePostActivity : AppCompatActivity() {
 
             uploadImageToStorage(bitmap, imageName) { imageUrl ->
                 if (imageUrl != null) {
-                    uploadPostToLocalDb(userEmail.toString(), postText, imageUrl, selectedLabel, database)
+                    PostUtils.uploadPostToRemoteDb(userEmail.toString(), postText, imageUrl, selectedLabel,
+                        onSuccess = {
+                            PostUtils.uploadPostToLocalDb(userEmail.toString(), postText, imageUrl, selectedLabel, database)
+                            Toast.makeText(this, "Post uploaded successfully!", Toast.LENGTH_SHORT).show()
+                            navigateToMainActivity()
+                    },
+                        onFailure = { exception ->
+                            Toast.makeText(this, "Failed: ${exception.message}", Toast.LENGTH_SHORT).show()
+                        })
                 } else {
                     Toast.makeText(this, "Failed to upload image", Toast.LENGTH_SHORT).show()
                 }
@@ -126,12 +139,12 @@ class CreatePostActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Toast.makeText(this, "Error processing image", Toast.LENGTH_SHORT).show()
         }
+    }
 
+    private fun navigateToMainActivity(){
         val intent = Intent(this, MainActivity::class.java)
         intent.putExtra("USER_EMAIL", userEmail.toString())
         startActivity(intent)
         finish() // Close the login activity
     }
-
-
 }
