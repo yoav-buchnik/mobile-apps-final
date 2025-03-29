@@ -34,7 +34,10 @@ class LoginActivity : AppCompatActivity() {
                     database.userDao().insertUser(user.copy(lastLoginTimestamp = System.currentTimeMillis()))
                 }
             }
-            navigateToMainActivity()
+            val intent = Intent(this, MainActivity::class.java)
+            intent.putExtra("USER_EMAIL", currentUser.email)
+            startActivity(intent)
+            finish()
             return
         }
         
