@@ -38,7 +38,7 @@ class MyPostsActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        postAdapter = PostAdapter()
+        postAdapter = PostAdapter(isMyPostsPage = true)
         binding.rvMyPosts.apply {
             layoutManager = LinearLayoutManager(this@MyPostsActivity)
             adapter = postAdapter

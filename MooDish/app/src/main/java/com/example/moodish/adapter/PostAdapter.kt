@@ -1,16 +1,18 @@
 package com.example.moodish.adapter
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.example.moodish.data.model.Post
 import com.example.moodish.databinding.ItemPostBinding
 import com.squareup.picasso.Picasso
 
-class PostAdapter : RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
+class PostAdapter(private val isMyPostsPage: Boolean = false) : RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
     private var posts = listOf<Post>()
 
-    class PostViewHolder(private val binding: ItemPostBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class PostViewHolder(private val binding: ItemPostBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(post: Post) {
             binding.tvPostText.text = post.text
             binding.tvLabel.text = post.label
@@ -22,6 +24,20 @@ class PostAdapter : RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
                     .fit()
                     .centerCrop()
                     .into(binding.ivPostImage)
+            }
+
+            // Show/hide edit and delete buttons based on isMyPostsPage
+            binding.ibEditPost.visibility = if (isMyPostsPage) View.VISIBLE else View.GONE
+            binding.ibDeletePost.visibility = if (isMyPostsPage) View.VISIBLE else View.GONE
+
+            if (isMyPostsPage) {
+                binding.ibEditPost.setOnClickListener {
+                    Toast.makeText(itemView.context, "Edit post clicked", Toast.LENGTH_SHORT).show()
+                }
+
+                binding.ibDeletePost.setOnClickListener {
+                    Toast.makeText(itemView.context, "Delete post clicked", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
