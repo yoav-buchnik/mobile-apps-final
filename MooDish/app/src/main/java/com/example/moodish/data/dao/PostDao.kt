@@ -22,4 +22,7 @@ interface PostDao {
 
     @Query("DELETE FROM posts WHERE id = :postId")
     suspend fun deletePost(postId: String)
+
+    @Query("SELECT MAX(lastUpdated) FROM posts")
+    suspend fun getLatestUpdateTimestamp(): Long?
 }
