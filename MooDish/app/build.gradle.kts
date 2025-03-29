@@ -78,7 +78,10 @@ dependencies {
 
     // Google Places
     implementation("com.google.android.libraries.places:places:3.3.0")
-    
+
+    // refresh layout
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

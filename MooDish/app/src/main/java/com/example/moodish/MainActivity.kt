@@ -33,6 +33,7 @@ class MainActivity : AppCompatActivity() {
         setupRecyclerView()
         setupChipListeners()
         setupBottomNavigation()
+        setupSwipeRefresh()
         syncPostsWithFirebase()
     }
 
@@ -41,6 +42,13 @@ class MainActivity : AppCompatActivity() {
         binding.rvRestaurants.apply {
             layoutManager = LinearLayoutManager(this@MainActivity)
             adapter = postAdapter
+        }
+    }
+
+    private fun setupSwipeRefresh() {
+        // Set the refresh listener to trigger syncPostsWithFirebase
+        binding.swipeRefresh.setOnRefreshListener {
+            syncPostsWithFirebase()
         }
     }
 
@@ -83,7 +91,9 @@ class MainActivity : AppCompatActivity() {
         val postsRef = db.collection("posts")
 
         // Show loading spinner
-        binding.progressBar.visibility = View.VISIBLE
+        if (!binding.swipeRefresh.isRefreshing) {
+            binding.progressBar.visibility = View.VISIBLE
+        }
 
         lifecycleScope.launch {
             try {
@@ -111,7 +121,9 @@ class MainActivity : AppCompatActivity() {
 
                                 // After syncing, fetch all posts from local DB
                                 fetchPosts()
+                                // Hide loading indicators
                                 binding.progressBar.visibility = View.GONE
+                                binding.swipeRefresh.isRefreshing = false
 
                                 if (documents.isEmpty) {
                                     Toast.makeText(
@@ -127,7 +139,10 @@ class MainActivity : AppCompatActivity() {
                                     ).show()
                                 }
                             } catch (e: Exception) {
+                                // Hide loading indicators
                                 binding.progressBar.visibility = View.GONE
+                                binding.swipeRefresh.isRefreshing = false
+
                                 Toast.makeText(
                                     this@MainActivity,
                                     "Error syncing posts: ${e.message}",
@@ -138,7 +153,10 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                     .addOnFailureListener { e ->
+                        // Hide loading indicators
                         binding.progressBar.visibility = View.GONE
+                        binding.swipeRefresh.isRefreshing = false
+
                         Toast.makeText(
                             this@MainActivity,
                             "Failed to fetch posts from Firebase: ${e.message}",
@@ -151,6 +169,8 @@ class MainActivity : AppCompatActivity() {
                     }
             } catch (e: Exception) {
                 binding.progressBar.visibility = View.GONE
+                binding.swipeRefresh.isRefreshing = false
+
                 Toast.makeText(
                     this@MainActivity,
                     "Error accessing local database: ${e.message}",
