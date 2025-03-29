@@ -81,53 +81,84 @@ class MainActivity : AppCompatActivity() {
     private fun syncPostsWithFirebase() {
         val db = FirebaseFirestore.getInstance()
         val postsRef = db.collection("posts")
-        
+
         // Show loading spinner
         binding.progressBar.visibility = View.VISIBLE
 
-        postsRef.get()
-            .addOnSuccessListener { documents ->
-                lifecycleScope.launch {
-                    try {
-                        // First, delete all existing posts from local DB
-                        database.postDao().deleteAllPosts()
+        lifecycleScope.launch {
+            try {
+                // Get the latest update timestamp from local database
+                val latestTimestamp = database.postDao().getLatestUpdateTimestamp() ?: 0L
 
-                        // Then insert all posts from Firebase
-                        for (document in documents) {
-                            val post = Post(
-                                id = document.getString("id") ?: "",
-                                email = document.getString("email") ?: "",
-                                text = document.getString("text") ?: "",
-                                imageUrl = document.getString("imageUrl"),
-                                label = document.getString("label"),
-                                lastUpdated = document.getLong("lastUpdated")
-                            )
-                            database.postDao().insertPost(post)
+                // Query Firebase for posts newer than our latest timestamp
+                postsRef.whereGreaterThan("lastUpdated", latestTimestamp)
+                    .get()
+                    .addOnSuccessListener { documents ->
+                        lifecycleScope.launch {
+                            try {
+                                // Insert only the new posts from Firebase
+                                for (document in documents) {
+                                    val post = Post(
+                                        id = document.getString("id") ?: "",
+                                        email = document.getString("email") ?: "",
+                                        text = document.getString("text") ?: "",
+                                        imageUrl = document.getString("imageUrl"),
+                                        label = document.getString("label"),
+                                        lastUpdated = document.getLong("lastUpdated")
+                                    )
+                                    database.postDao().insertPost(post)
+                                }
+
+                                // After syncing, fetch all posts from local DB
+                                fetchPosts()
+                                binding.progressBar.visibility = View.GONE
+
+                                if (documents.isEmpty) {
+                                    Toast.makeText(
+                                        this@MainActivity,
+                                        "Already up to date",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } else {
+                                    Toast.makeText(
+                                        this@MainActivity,
+                                        "Synced ${documents.size()} new posts",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            } catch (e: Exception) {
+                                binding.progressBar.visibility = View.GONE
+                                Toast.makeText(
+                                    this@MainActivity,
+                                    "Error syncing posts: ${e.message}",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                fetchPosts()
+                            }
                         }
-                        // After syncing, fetch all posts from local DB
-                        fetchPosts()
-                        binding.progressBar.visibility = View.GONE
-                    } catch (e: Exception) {
+                    }
+                    .addOnFailureListener { e ->
                         binding.progressBar.visibility = View.GONE
                         Toast.makeText(
                             this@MainActivity,
-                            "Error syncing posts: ${e.message}",
+                            "Failed to fetch posts from Firebase: ${e.message}",
                             Toast.LENGTH_LONG
                         ).show()
-                        fetchPosts()
+                        // If sync fails, still show local posts
+                        lifecycleScope.launch {
+                            fetchPosts()
+                        }
                     }
-                }
-            }
-            .addOnFailureListener { e ->
+            } catch (e: Exception) {
                 binding.progressBar.visibility = View.GONE
                 Toast.makeText(
-                    this,
-                    "Failed to fetch posts from Firebase: ${e.message}",
+                    this@MainActivity,
+                    "Error accessing local database: ${e.message}",
                     Toast.LENGTH_LONG
                 ).show()
-                // If sync fails, still show local posts
                 fetchPosts()
             }
+        }
     }
 
     private fun fetchPosts() {

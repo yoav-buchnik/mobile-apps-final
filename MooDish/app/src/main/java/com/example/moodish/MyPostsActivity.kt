@@ -1,10 +1,12 @@
 package com.example.moodish
 
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.moodish.MainActivity
 import com.example.moodish.adapter.PostAdapter
 import com.example.moodish.data.AppDatabase
 import com.example.moodish.databinding.ActivityMyPostsBinding
@@ -62,10 +64,6 @@ class MyPostsActivity : AppCompatActivity() {
         // First, try to get posts from local database
         lifecycleScope.launch {
             try {
-                val localPosts = database.postDao().getAllUserPosts(userEmail!!)
-                postAdapter.updatePosts(localPosts)
-                
-                // Then, fetch from Firebase to ensure we have the latest data
                 fetchPostsFromFirebase()
             } catch (e: Exception) {
                 showToast("Error loading posts: ${e.message}")
@@ -76,39 +74,84 @@ class MyPostsActivity : AppCompatActivity() {
     private fun fetchPostsFromFirebase() {
         val db = FirebaseFirestore.getInstance()
         val postsRef = db.collection("posts")
-            .whereEqualTo("email", userEmail)
 
-        postsRef.get()
-            .addOnSuccessListener { documents ->
-                lifecycleScope.launch {
-                    try {
-                        val posts = documents.map { doc ->
-                            Post(
-                                id = doc.getString("id") ?: "",
-                                email = doc.getString("email") ?: "",
-                                text = doc.getString("text") ?: "",
-                                imageUrl = doc.getString("imageUrl"),
-                                label = doc.getString("label"),
-                                lastUpdated = doc.getLong("lastUpdated")
-                            )
+        lifecycleScope.launch {
+            try {
+                // Get the latest update timestamp from local database
+                val latestTimestamp = database.postDao().getLatestUpdateTimestamp() ?: 0L
+
+                // Query Firebase for posts newer than our latest timestamp
+                postsRef.whereGreaterThan("lastUpdated", latestTimestamp)
+                    .get()
+                    .addOnSuccessListener { documents ->
+                        lifecycleScope.launch {
+                            try {
+                                // Insert only the new posts from Firebase
+                                for (document in documents) {
+                                    val post = Post(
+                                        id = document.getString("id") ?: "",
+                                        email = document.getString("email") ?: "",
+                                        text = document.getString("text") ?: "",
+                                        imageUrl = document.getString("imageUrl"),
+                                        label = document.getString("label"),
+                                        lastUpdated = document.getLong("lastUpdated")
+                                    )
+                                    database.postDao().insertPost(post)
+                                }
+
+                                // After syncing, fetch all posts from local DB
+                                fetchPosts()
+
+                                if (documents.isEmpty) {
+                                    Toast.makeText(
+                                        this@MyPostsActivity,
+                                        "Already up to date",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } else {
+                                    Toast.makeText(
+                                        this@MyPostsActivity,
+                                        "Synced ${documents.size()} new posts",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(
+                                    this@MyPostsActivity,
+                                    "Error syncing posts: ${e.message}",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                fetchPosts()
+                            }
                         }
-                        
-                        // Update local database
-                        database.postDao().deleteAllPosts() // Optional: you might want to only delete user's posts
-                        posts.forEach { post ->
-                            database.postDao().insertPost(post)
-                        }
-                        
-                        // Update UI
-                        postAdapter.updatePosts(posts)
-                    } catch (e: Exception) {
-                        showToast("Error syncing with Firebase: ${e.message}")
                     }
-                }
+                    .addOnFailureListener { e ->
+                        Toast.makeText(
+                            this@MyPostsActivity,
+                            "Failed to fetch posts from Firebase: ${e.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        // If sync fails, still show local posts
+                        lifecycleScope.launch {
+                            fetchPosts()
+                        }
+                    }
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@MyPostsActivity,
+                    "Error accessing local database: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+                fetchPosts()
             }
-            .addOnFailureListener { e ->
-                showToast("Error fetching posts: ${e.message}")
-            }
+        }
+    }
+
+    private fun fetchPosts() {
+        lifecycleScope.launch {
+            val localPosts = database.postDao().getAllUserPosts(userEmail!!)
+            postAdapter.updatePosts(localPosts)
+        }
     }
 
     private fun showToast(message: String) {
