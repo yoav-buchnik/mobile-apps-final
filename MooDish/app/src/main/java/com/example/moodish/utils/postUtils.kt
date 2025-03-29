@@ -1,5 +1,8 @@
 package com.example.moodish.utils
 
+import android.app.Activity
+import android.net.Uri
+import androidx.activity.result.contract.ActivityResultContracts
 import android.util.Log
 import com.example.moodish.data.AppDatabase
 import com.example.moodish.data.model.Post
@@ -9,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
+import com.example.moodish.utils.ImageUtils
 
 
 object PostUtils {
@@ -137,6 +141,7 @@ object PostUtils {
         post: Post,
         newText: String,
         newLabel: String,
+        newImageUrl: String?,
         database: AppDatabase,
         context: android.content.Context,
         onSuccess: () -> Unit
@@ -147,6 +152,7 @@ object PostUtils {
         val updatedPost = post.copy(
             text = newText,
             label = newLabel,
+            imageUrl = newImageUrl,
             lastUpdated = System.currentTimeMillis()
         )
 
@@ -160,6 +166,7 @@ object PostUtils {
                         mapOf(
                             "text" to newText,
                             "label" to newLabel,
+                            "imageUrl" to newImageUrl,
                             "lastUpdated" to System.currentTimeMillis()
                         )
                     ).addOnSuccessListener {

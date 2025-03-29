@@ -47,4 +47,10 @@
     <string name="select_image">Select Image</string>
     <string name="create_post">Create Post</string>
     <string name="save_post">Save Post</string>
+
+    <!-- Edit post strings -->
+    <string name="edit_post">Edit post</string>
+    <string name="edit_post_text">Enter post text</string>
+    <string name="edit_post_image">Change Image</string>
+    <string name="edit_post_label">Select Label:</string>
 </resources>

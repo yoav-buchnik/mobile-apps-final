@@ -9,17 +9,34 @@
         android:id="@+id/etPostText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter post text"
+        android:hint="@string/edit_post_text"
         android:minHeight="100dp"
         android:gravity="top"
         android:padding="8dp"
         android:background="@android:drawable/editbox_background"/>
 
+    <ImageView
+        android:id="@+id/ivEditImage"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="16dp"
+        android:layout_gravity="center"
+        android:scaleType="centerCrop"
+        android:src="@android:drawable/ic_menu_gallery"/>
+
+    <Button
+        android:id="@+id/btnChangeImage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="8dp"
+        android:text="@string/edit_post_image"/>
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Select Label:"
+        android:text="@string/edit_post_label"
         android:textStyle="bold"/>
 
     <RadioGroup
@@ -32,24 +49,24 @@
             android:id="@+id/rbRomantic"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Romantic"/>
+            android:text="@string/romantic"/>
 
         <RadioButton
             android:id="@+id/rbFamily"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Family"/>
+            android:text="@string/family"/>
 
         <RadioButton
             android:id="@+id/rbSolo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Solo"/>
+            android:text="@string/solo"/>
 
         <RadioButton
             android:id="@+id/rbHappy"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Happy"/>
+            android:text="@string/happy"/>
     </RadioGroup>
 </LinearLayout> 

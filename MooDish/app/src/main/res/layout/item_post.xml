@@ -47,8 +47,8 @@
                 android:layout_marginEnd="16dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_edit"
-                android:tint="@color/moodish_coral"
-                android:contentDescription="Edit post"/>
+                android:contentDescription="@string/edit_post"
+                app:tint="@color/moodish_coral" />
 
             <ImageButton
                 android:id="@+id/ibDeletePost"

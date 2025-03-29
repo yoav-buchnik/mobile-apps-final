@@ -2,10 +2,13 @@ package com.example.moodish.adapter
 
 import android.app.AlertDialog
 import android.content.Context
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.example.moodish.data.model.Post
 import com.example.moodish.databinding.ItemPostBinding
@@ -15,6 +18,7 @@ import com.example.moodish.data.AppDatabase
 import com.example.moodish.MyPostsActivity
 import com.example.moodish.R
 import com.example.moodish.databinding.DialogEditPostBinding
+import com.example.moodish.utils.ImageUtils
 
 class PostAdapter(
     private val isMyPostsPage: Boolean = false,
@@ -22,6 +26,20 @@ class PostAdapter(
     private val database: AppDatabase? = null
 ) : RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
     private var posts = listOf<Post>()
+    private var currentImageDialogBinding: DialogEditPostBinding? = null
+    private var currentDialog: AlertDialog? = null
+    
+    // Store the activity result launcher at adapter level
+    private val imagePickerLauncher = (context as? AppCompatActivity)?.registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            currentImageDialogBinding?.ivEditImage?.setImageURI(it)
+            currentImageDialogBinding?.let { binding ->
+                binding.ivEditImage.tag = uri // Store URI for later use
+            }
+        }
+    }
 
     inner class PostViewHolder(private val binding: ItemPostBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(post: Post) {
@@ -73,54 +91,115 @@ class PostAdapter(
     }
 
     private fun showEditDialog(post: Post) {
-        context?.let { ctx ->
-            // Create custom dialog layout
-            val dialogBinding = DialogEditPostBinding.inflate(LayoutInflater.from(ctx))
-            
-            // Pre-fill existing values
-            dialogBinding.etPostText.setText(post.text)
-            
-            // Setup label radio buttons
-            val labelGroup = dialogBinding.rgLabels
-            when (post.label) {
-                "Romantic" -> labelGroup.check(R.id.rbRomantic)
-                "Family" -> labelGroup.check(R.id.rbFamily)
-                "Solo" -> labelGroup.check(R.id.rbSolo)
-                "Happy" -> labelGroup.check(R.id.rbHappy)
+        val ctx = context ?: return
+        val dialogBinding = DialogEditPostBinding.inflate(LayoutInflater.from(ctx))
+        currentImageDialogBinding = dialogBinding
+        
+        // Set existing values
+        dialogBinding.etPostText.setText(post.text)
+        
+        // Load existing image
+        if (!post.imageUrl.isNullOrEmpty()) {
+            Picasso.get()
+                .load(post.imageUrl)
+                .fit()
+                .centerCrop()
+                .into(dialogBinding.ivEditImage)
+        }
+
+        // Set existing label
+        when (post.label) {
+            "Romantic" -> dialogBinding.rbRomantic.isChecked = true
+            "Family" -> dialogBinding.rbFamily.isChecked = true
+            "Solo" -> dialogBinding.rbSolo.isChecked = true
+            "Happy" -> dialogBinding.rbHappy.isChecked = true
+        }
+
+        // Create dialog
+        val dialog = AlertDialog.Builder(ctx)
+            .setTitle("Edit Post")
+            .setView(dialogBinding.root)
+            .setPositiveButton("Save", null)
+            .setNegativeButton("Cancel") { _, _ ->
+                currentImageDialogBinding = null
+                currentDialog = null
+            }
+            .create()
+
+        currentDialog = dialog
+
+        dialogBinding.btnChangeImage.setOnClickListener {
+            imagePickerLauncher?.launch("image/*")
+        }
+
+        // Show dialog and set positive button listener
+        dialog.show()
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            val newText = dialogBinding.etPostText.text.toString()
+            val newLabel = when (dialogBinding.rgLabels.checkedRadioButtonId) {
+                R.id.rbRomantic -> "Romantic"
+                R.id.rbFamily -> "Family"
+                R.id.rbSolo -> "Solo"
+                R.id.rbHappy -> "Happy"
+                else -> post.label ?: ""
             }
 
-            AlertDialog.Builder(ctx)
-                .setTitle("Edit Post")
-                .setView(dialogBinding.root)
-                .setPositiveButton("Save") { dialog, _ ->
-                    val newText = dialogBinding.etPostText.text.toString()
-                    val newLabel = when (dialogBinding.rgLabels.checkedRadioButtonId) {
-                        R.id.rbRomantic -> "Romantic"
-                        R.id.rbFamily -> "Family"
-                        R.id.rbSolo -> "Solo"
-                        R.id.rbHappy -> "Happy"
-                        else -> post.label ?: ""
-                    }
+            if (newText.isEmpty()) {
+                Toast.makeText(ctx, "Post text cannot be empty", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
 
-                    if (newText.isNotEmpty() && database != null) {
-                        PostUtils.editPost(
-                            post = post,
-                            newText = newText,
-                            newLabel = newLabel,
-                            database = database,
-                            context = ctx
-                        ) {
-                            // Refresh the posts after successful edit
-                            if (ctx is MyPostsActivity) {
-                                ctx.fetchUserPosts()
+            if (database != null) {
+                val newImageUri = dialogBinding.ivEditImage.tag as? Uri
+                
+                if (newImageUri != null) {
+                    try {
+                        val bitmap = ImageUtils.uriToBitmap(ctx, newImageUri)
+                        val imageName = "post_${System.currentTimeMillis()}"
+                        
+                        ImageUtils.uploadImageToStorage(bitmap, imageName) { imageUrl ->
+                            if (imageUrl != null) {
+                                PostUtils.editPost(
+                                    post = post,
+                                    newText = newText,
+                                    newLabel = newLabel,
+                                    newImageUrl = imageUrl,
+                                    database = database,
+                                    context = ctx
+                                ) {
+                                    if (ctx is MyPostsActivity) {
+                                        ctx.fetchUserPosts()
+                                    }
+                                }
+                                dialog.dismiss()
+                                currentImageDialogBinding = null
+                                currentDialog = null
+                            } else {
+                                Toast.makeText(ctx, "Failed to upload image", Toast.LENGTH_SHORT).show()
                             }
                         }
-                    } else {
-                        Toast.makeText(ctx, "Post text cannot be empty", Toast.LENGTH_SHORT).show()
+                    } catch (e: Exception) {
+                        Toast.makeText(ctx, "Error processing image", Toast.LENGTH_SHORT).show()
                     }
+                } else {
+                    // No image change, just update text and label
+                    PostUtils.editPost(
+                        post = post,
+                        newText = newText,
+                        newLabel = newLabel,
+                        newImageUrl = post.imageUrl,
+                        database = database,
+                        context = ctx
+                    ) {
+                        if (ctx is MyPostsActivity) {
+                            ctx.fetchUserPosts()
+                        }
+                    }
+                    dialog.dismiss()
+                    currentImageDialogBinding = null
+                    currentDialog = null
                 }
-                .setNegativeButton("Cancel", null)
-                .show()
+            }
         }
     }
 
