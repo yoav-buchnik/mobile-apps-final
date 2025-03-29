@@ -38,6 +38,14 @@ object NavigationUtils {
                     }
                     true
                 }
+                R.id.nav_my_posts -> {
+                    if (currentDestination != R.id.nav_my_posts) {
+                        val intent = Intent(activity, MyPostsActivity::class.java)
+                        intent.putExtra("USER_EMAIL", userEmail)
+                        activity.startActivity(intent)
+                    }
+                    true
+                }
                 R.id.nav_profile -> {
                     if (currentDestination != R.id.nav_profile) {
                         val intent = Intent(activity, ProfileActivity::class.java)
